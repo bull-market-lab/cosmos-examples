@@ -1,0 +1,46 @@
+{
+  "name": "cosmos-examples",
+  "version": "1.0.0",
+  "main": "index.js",
+  "repository": "git@github.com:llllllluc/cosmos-examples.git",
+  "author": "llllllluc <58892938+llllllluc@users.noreply.github.com>",
+  "license": "MIT",
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^5.57.0",
+    "@typescript-eslint/parser": "^5.57.0",
+    "eslint": "^8.37.0",
+    "eslint-config-prettier": "^8.8.0",
+    "husky": "^8.0.3",
+    "lint-staged": "^13.2.0",
+    "prettier": "^2.8.7",
+    "ts-node": "^10.9.1",
+    "typescript": "^5.0.2"
+  },
+  "dependencies": {
+    "@skip-mev/skipjs": "^1.4.0",
+    "@terra-money/feather.js": "^1.0.4",
+    "@terra-money/warp-sdk": "^0.1.21"
+  },
+  "lint-staged": {
+    "./src/{**/*,*}.{ts,tsx}": [
+      "prettier --write"
+    ]
+  },
+  "scripts": {
+    "postinstall": "husky install",
+    "format": "prettier --write .",
+    "format-check": "prettier --ignore-path .gitignore --check .",
+    "lint": "yarn format-check && eslint . && yarn build",
+    "clean": "yarn tsc --build --clean && rm -rf build",
+    "build": "yarn clean && tsc",
+    "warp-create-account": "ts-node src/warp/tester/create_account.ts",
+    "warp-deposit-account": "ts-node src/tester/deposit_account.ts",
+    "warp-withdraw-account": "ts-node src/tester/withdraw_account.ts",
+    "warp-create-job": "ts-node src/tester/create_job.ts",
+    "warp-update-job": "ts-node src/tester/update_job.ts",
+    "warp-delete-job": "ts-node src/tester/delete_job.ts",
+    "warp-custom-action": "ts-node src/tester/custom_action.ts",
+    "warp-execute-job": "ts-node src/keeper/execute_job.ts",
+    "warp-evict-job": "ts-node src/keeper/evict_job.ts"
+  }
+}
