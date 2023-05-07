@@ -34,13 +34,15 @@
     "clean": "yarn tsc --build --clean && rm -rf build",
     "build": "yarn clean && tsc",
     "warp-create-account": "ts-node src/warp/tester/create_account.ts",
-    "warp-deposit-account": "ts-node src/tester/deposit_account.ts",
-    "warp-withdraw-account": "ts-node src/tester/withdraw_account.ts",
-    "warp-create-job": "ts-node src/tester/create_job.ts",
-    "warp-update-job": "ts-node src/tester/update_job.ts",
-    "warp-delete-job": "ts-node src/tester/delete_job.ts",
-    "warp-custom-action": "ts-node src/tester/custom_action.ts",
-    "warp-execute-job": "ts-node src/keeper/execute_job.ts",
-    "warp-evict-job": "ts-node src/keeper/evict_job.ts"
+    "warp-deposit-account": "ts-node src/warp/tester/deposit_account.ts",
+    "warp-withdraw-account": "ts-node src/warp/tester/withdraw_account.ts",
+    "warp-create-job": "ts-node src/warp/tester/create_job.ts",
+    "warp-update-job": "ts-node src/warp/tester/update_job.ts",
+    "warp-delete-job": "ts-node src/warp/tester/delete_job.ts",
+    "warp-custom-action": "ts-node src/warp/tester/custom_action.ts",
+    "warp-execute-job": "ts-node src/warp/keeper/execute_job.ts",
+    "warp-evict-job": "ts-node src/warp/keeper/evict_job.ts",
+    "astroport-provide-liquidity": "ts-node src/astroport/provide_liquidity.ts",
+    "astroport-swap": "ts-node src/astroport/swap.ts"
   }
 }

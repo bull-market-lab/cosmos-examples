@@ -1,14 +1,20 @@
 import { warp_controller } from '@terra-money/warp-sdk';
-import { getLCD, getMnemonicKey, getWallet, initWarpSdk, printAxiosError } from '../util';
+import {
+  getLCDOld,
+  getMnemonicKeyOld,
+  getWalletOld,
+  initWarpSdk,
+  printAxiosError,
+} from '../../util';
 import { CreateTxOptions, Coins, MsgExecuteContract } from '@terra-money/terra.js';
 
 function executeMsg<T extends {}>(sender: string, contract: string, msg: T, coins?: Coins.Input) {
   return new MsgExecuteContract(sender, contract, msg, coins);
 }
 
-const mnemonicKey = getMnemonicKey(true);
-const lcd = getLCD();
-const wallet = getWallet(lcd, mnemonicKey);
+const mnemonicKey = getMnemonicKeyOld(true);
+const lcd = getLCDOld();
+const wallet = getWalletOld(lcd, mnemonicKey);
 const warpSdk = initWarpSdk(lcd, wallet);
 const owner = wallet.key.accAddress;
 

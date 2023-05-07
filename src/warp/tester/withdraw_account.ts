@@ -1,9 +1,15 @@
 import { LUNA } from '@terra-money/warp-sdk';
-import { getLCD, getMnemonicKey, getWallet, initWarpSdk, printAxiosError } from '../util';
+import {
+  getLCDOld,
+  getMnemonicKeyOld,
+  getWalletOld,
+  initWarpSdk,
+  printAxiosError,
+} from '../../util';
 
-const mnemonicKey = getMnemonicKey(true);
-const lcd = getLCD();
-const wallet = getWallet(lcd, mnemonicKey);
+const mnemonicKey = getMnemonicKeyOld(true);
+const lcd = getLCDOld();
+const wallet = getWalletOld(lcd, mnemonicKey);
 const warpSdk = initWarpSdk(lcd, wallet);
 
 const amount = 2_970_000;

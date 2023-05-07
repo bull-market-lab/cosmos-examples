@@ -1,12 +1,12 @@
 // create immediately executable job and delay job (executable after 5 blocks, about 30s)
 import {
   getCurrentBlockHeight,
-  getLCD,
-  getMnemonicKey,
-  getWallet,
+  getLCDOld,
+  getMnemonicKeyOld,
+  getWalletOld,
   initWarpSdk,
   printAxiosError,
-} from '../util';
+} from '../../util';
 import { warp_controller } from '@terra-money/warp-sdk';
 import { CreateTxOptions, Coins, MsgExecuteContract } from '@terra-money/terra.js';
 
@@ -14,9 +14,9 @@ function executeMsg<T extends {}>(sender: string, contract: string, msg: T, coin
   return new MsgExecuteContract(sender, contract, msg, coins);
 }
 
-const mnemonicKey = getMnemonicKey(true);
-const lcd = getLCD();
-const wallet = getWallet(lcd, mnemonicKey);
+const mnemonicKey = getMnemonicKeyOld(true);
+const lcd = getLCDOld();
+const wallet = getWalletOld(lcd, mnemonicKey);
 const warpSdk = initWarpSdk(lcd, wallet);
 const owner = wallet.key.accAddress;
 

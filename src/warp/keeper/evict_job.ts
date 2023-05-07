@@ -1,8 +1,14 @@
-import { getLCD, getMnemonicKey, getWallet, initWarpSdk, printAxiosError } from '../util';
+import {
+  getLCDOld,
+  getMnemonicKeyOld,
+  getWalletOld,
+  initWarpSdk,
+  printAxiosError,
+} from '../../util';
 
-const mnemonicKey = getMnemonicKey();
-const lcd = getLCD();
-const wallet = getWallet(lcd, mnemonicKey);
+const mnemonicKey = getMnemonicKeyOld();
+const lcd = getLCDOld();
+const wallet = getWalletOld(lcd, mnemonicKey);
 const warpSdk = initWarpSdk(lcd, wallet);
 const owner = wallet.key.accAddress;
 
