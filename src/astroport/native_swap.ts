@@ -14,6 +14,7 @@ const wallet = getWallet(lcd, mnemonicKey);
 // sender
 const myAddress = wallet.key.accAddress(CHAIN_PREFIX);
 
+// this is the astro-luna pair contract, not the astro-luna lp token contract
 const astroLunaPairAddress = ASTRO_LUNA_PAIR_ADDRESS!;
 const astroTokenAddress = ASTRO_TOKEN_ADDRESS!;
 
@@ -70,4 +71,5 @@ const run = async () => {
     });
 };
 
+// swap from native to native or cw20, e.g. LUNA to ASTRO or LUNA to UST
 run();

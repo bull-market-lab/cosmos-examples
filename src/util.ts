@@ -95,3 +95,7 @@ export const getMnemonicKey = (isTester2 = false): MnemonicKey => {
 export const getWallet = (lcd: LCDClient, mnemonicKey: MnemonicKey): Wallet => {
   return new Wallet(lcd, mnemonicKey);
 };
+
+export const toBase64 = (obj: Object) => {
+  return Buffer.from(JSON.stringify(obj)).toString('base64');
+};

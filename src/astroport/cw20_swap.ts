@@ -1,7 +1,6 @@
 import { Coins, MsgExecuteContract } from '@terra-money/feather.js';
-import { getLCD, getMnemonicKey, getWallet, printAxiosError } from '../util';
+import { getLCD, getMnemonicKey, getWallet, printAxiosError, toBase64 } from '../util';
 import {
-  ASTROPORT_ROUTER_ADDRESS,
   ASTRO_LUNA_PAIR_ADDRESS,
   ASTRO_TOKEN_ADDRESS,
   CHAIN_DENOM,
@@ -16,42 +15,31 @@ const wallet = getWallet(lcd, mnemonicKey);
 const myAddress = wallet.key.accAddress(CHAIN_PREFIX);
 
 // this is the astro-luna pair contract, not the astro-luna lp token contract
-const astroportRouterAddress = ASTROPORT_ROUTER_ADDRESS!;
-
+const astroLunaPairAddress = ASTRO_LUNA_PAIR_ADDRESS!;
 const astroTokenAddress = ASTRO_TOKEN_ADDRESS!;
 
-const astroAmount100 = 100_000_000;
+const astroAmount5 = 5_000_000;
 const lunaAmount10 = 10_000_000;
 
 const run = async () => {
-  const swap = new MsgExecuteContract(
-    myAddress,
-    astroportRouterAddress,
-    {
-      execute_swap_operations: {
-        max_spread: '0.5',
-        // minimum_receive: '9500000000',
-        // to: '...', // default to sender
-        operations: [
-          {
-            astro_swap: {
-              ask_asset_info: {
-                token: {
-                  contract_addr: astroTokenAddress,
-                },
-              },
-              offer_asset_info: {
-                native_token: {
-                  denom: CHAIN_DENOM,
-                },
-              },
+  const swap = new MsgExecuteContract(myAddress, astroTokenAddress, {
+    send: {
+      contract: astroLunaPairAddress,
+      amount: astroAmount5.toString(),
+      msg: toBase64({
+        swap: {
+          ask_asset_info: {
+            native_token: {
+              denom: CHAIN_DENOM,
             },
           },
-        ],
-      },
+          // belief_price: beliefPrice,
+          max_spread: '0.5',
+          // to: '...',
+        },
+      }),
     },
-    new Coins({ [CHAIN_DENOM]: lunaAmount10.toString() })
-  );
+  });
 
   wallet
     .createAndSignTx({
@@ -74,4 +62,5 @@ const run = async () => {
     });
 };
 
+// swap from cw20 to native or cw20, e.g. ASTRO to LUNA or ASTRO to UST
 run();

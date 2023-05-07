@@ -43,6 +43,9 @@
     "warp-execute-job": "ts-node src/warp/keeper/execute_job.ts",
     "warp-evict-job": "ts-node src/warp/keeper/evict_job.ts",
     "astroport-provide-liquidity": "ts-node src/astroport/provide_liquidity.ts",
-    "astroport-swap": "ts-node src/astroport/swap.ts"
+    "astroport-native-swap": "ts-node src/astroport/native_swap.ts",
+    "astroport-cw20-swap": "ts-node src/astroport/cw20_swap.ts",
+    "astroport-multihop-swap": "ts-node src/astroport/multihop_swap.ts",
+    "astroport-simulate-swap": "ts-node src/astroport/simulate_swap.ts"
   }
 }
