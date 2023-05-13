@@ -6,7 +6,7 @@ import {
   printAxiosError,
 } from '../../util';
 
-const mnemonicKey = getMnemonicKeyOld(true);
+const mnemonicKey = getMnemonicKeyOld();
 const lcd = getLCDOld();
 const wallet = getWalletOld(lcd, mnemonicKey);
 const warpSdk = initWarpSdk(lcd, wallet);

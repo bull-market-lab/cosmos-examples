@@ -19,7 +19,8 @@
   "dependencies": {
     "@skip-mev/skipjs": "^1.4.0",
     "@terra-money/feather.js": "^1.0.4",
-    "@terra-money/warp-sdk": "^0.1.21"
+    "@terra-money/warp-sdk": "^0.1.21",
+    "@types/big.js": "^6.1.6"
   },
   "lint-staged": {
     "./src/{**/*,*}.{ts,tsx}": [
@@ -42,6 +43,7 @@
     "warp-custom-action": "ts-node src/warp/tester/custom_action.ts",
     "warp-execute-job": "ts-node src/warp/keeper/execute_job.ts",
     "warp-evict-job": "ts-node src/warp/keeper/evict_job.ts",
+    "warp-astroport-limit-order": "ts-node src/warp/complex_jobs/astroport_limit_order.ts",
     "astroport-provide-liquidity": "ts-node src/astroport/provide_liquidity.ts",
     "astroport-native-swap": "ts-node src/astroport/native_swap.ts",
     "astroport-cw20-swap": "ts-node src/astroport/cw20_swap.ts",

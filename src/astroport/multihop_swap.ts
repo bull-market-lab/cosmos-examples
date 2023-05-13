@@ -15,7 +15,8 @@ const wallet = getWallet(lcd, mnemonicKey);
 // sender
 const myAddress = wallet.key.accAddress(CHAIN_PREFIX);
 
-// this is the astro-luna pair contract, not the astro-luna lp token contract
+// astroport router knows all the pools
+// even if we don't want multiple hop we can use it to avoid entering the pool address
 const astroportRouterAddress = ASTROPORT_ROUTER_ADDRESS!;
 
 const astroTokenAddress = ASTRO_TOKEN_ADDRESS!;
