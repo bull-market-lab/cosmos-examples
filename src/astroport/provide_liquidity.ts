@@ -18,14 +18,14 @@ const myAddress = wallet.key.accAddress(CHAIN_PREFIX);
 const astroLunaPairAddress = ASTRO_LUNA_PAIR_ADDRESS!;
 const astroTokenAddress = ASTRO_TOKEN_ADDRESS!;
 
-const astroAmount100 = 100_000_000;
-const lunaAmount100 = 100_000_000;
+const astroAmount10000 = (10_000_000_000).toString();
+const lunaAmount10000 = (10_000_000_000).toString();
 
 const run = async () => {
   const increaseAllowance = new MsgExecuteContract(myAddress, astroTokenAddress, {
     increase_allowance: {
       spender: astroLunaPairAddress,
-      amount: astroAmount100.toString(),
+      amount: astroAmount10000,
       expires: {
         never: {},
       },
@@ -44,7 +44,7 @@ const run = async () => {
                 contract_addr: astroTokenAddress,
               },
             },
-            amount: astroAmount100.toString(),
+            amount: astroAmount10000,
           },
           {
             info: {
@@ -52,15 +52,15 @@ const run = async () => {
                 denom: CHAIN_DENOM,
               },
             },
-            amount: lunaAmount100.toString(),
+            amount: lunaAmount10000,
           },
         ],
-        slippage_tolerance: '0.005',
+        slippage_tolerance: '0.1',
         auto_stake: false,
         receiver: myAddress,
       },
     },
-    new Coins({ [CHAIN_DENOM]: lunaAmount100.toString() })
+    new Coins({ [CHAIN_DENOM]: lunaAmount10000 })
   );
 
   wallet

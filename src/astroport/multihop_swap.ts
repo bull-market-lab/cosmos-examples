@@ -21,8 +21,8 @@ const astroportRouterAddress = ASTROPORT_ROUTER_ADDRESS!;
 
 const astroTokenAddress = ASTRO_TOKEN_ADDRESS!;
 
-const astroAmount100 = 100_000_000;
-const lunaAmount10 = 10_000_000;
+const astroAmount100 = (100_000_000).toString();
+const lunaAmount10 = (10_000_000).toString();
 
 const run = async () => {
   const swap = new MsgExecuteContract(
@@ -51,7 +51,7 @@ const run = async () => {
         ],
       },
     },
-    new Coins({ [CHAIN_DENOM]: lunaAmount10.toString() })
+    new Coins({ [CHAIN_DENOM]: lunaAmount10 })
   );
 
   wallet

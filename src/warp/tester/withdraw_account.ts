@@ -12,7 +12,7 @@ const lcd = getLCDOld();
 const wallet = getWalletOld(lcd, mnemonicKey);
 const warpSdk = initWarpSdk(lcd, wallet);
 
-const amount = 16_750_000;
+const amount = 68_950_000;
 
 const run = async () => {
   warpSdk

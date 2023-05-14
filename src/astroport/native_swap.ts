@@ -18,8 +18,8 @@ const myAddress = wallet.key.accAddress(CHAIN_PREFIX);
 const astroLunaPairAddress = ASTRO_LUNA_PAIR_ADDRESS!;
 const astroTokenAddress = ASTRO_TOKEN_ADDRESS!;
 
-const astroAmount100 = 100_000_000;
-const lunaAmount10 = 10_000_000;
+const astroAmount100 = (100_000_000).toString();
+const lunaAmount10 = (10_000_000).toString();
 
 const run = async () => {
   const swap = new MsgExecuteContract(
@@ -33,7 +33,7 @@ const run = async () => {
               denom: CHAIN_DENOM,
             },
           },
-          amount: lunaAmount10.toString(),
+          amount: lunaAmount10,
         },
         /*
         Belief Price + Max Spread
@@ -47,7 +47,7 @@ const run = async () => {
         // to: '...', // default to sender
       },
     },
-    new Coins({ [CHAIN_DENOM]: lunaAmount10.toString() })
+    new Coins({ [CHAIN_DENOM]: lunaAmount10 })
   );
 
   wallet

@@ -14,7 +14,7 @@ const owner = wallet.key.accAddress;
 
 const run = async () => {
   warpSdk
-    .executeJob(owner, '4')
+    .executeJob(owner, '24')
     .then((txInfo) => console.log(txInfo))
     .catch((e) => {
       printAxiosError(e);

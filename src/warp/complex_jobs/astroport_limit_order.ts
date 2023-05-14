@@ -33,9 +33,16 @@ const astroTokenAddress = ASTRO_TOKEN_ADDRESS!;
 
 const warpControllerAddress = WARP_CONTROLLER_ADDRESS!;
 
-const astroAmount100 = (100_000_000).toString();
 const lunaAmount10 = (10_000_000).toString();
 const lunaAmount1 = (1_000_000).toString();
+
+// when max_spread and minimum_receive are both specified, the swap will fail if receive amount is not in the range of [minimum_receive, return_amount * (1 +/- max_spread)]
+// actually i think i only need to specify minimum_receive in condition
+// no need for actual swap msg cause checking condition is atomic with executing swap msg
+const expectedReceivedAstroAmount = (9_810_335).toString();
+// default spread is 0.01 which is 1%
+// maybe i don't need to specify spread in swap msg, as condition already ensure i get the price i want
+const maxSpread = '0.001';
 
 const run = async () => {
   const warpConfig = await lcd.wasm.contractQuery(warpControllerAddress, {
@@ -52,9 +59,11 @@ const run = async () => {
   // @ts-ignore
   const warpAccountAddress: string = warpAccount.account.account;
 
+  const lunaSwapAmount = lunaAmount10;
   const lunaReward = lunaAmount1;
   const lunaSendAmount = Big(lunaReward)
     .mul(Big(warpCreationFeePercentages).add(100).div(100))
+    .add(lunaSwapAmount)
     .toString();
 
   // TODO: warp currently doesn't support create account and fund it in 1 tx, but it's in feature branch
@@ -78,10 +87,11 @@ const run = async () => {
 
   // const fundJsonString = JSON.stringify(fund);
 
-  const astroportMsg = {
+  const astroportSwapMsg = {
     execute_swap_operations: {
-      max_spread: '0.1',
-      // minimum_receive: '9500000000',
+      max_spread: maxSpread,
+      // minimum_receive: expectedReceivedAstroAmount,
+      to: myAddress,
       operations: [
         {
           astro_swap: {
@@ -101,24 +111,71 @@ const run = async () => {
     },
   };
 
-  // swap 10 LUNA to about 10 ASTRO
   const swap = {
     wasm: {
       execute: {
         contract_addr: astroportRouterAddress,
-        msg: toBase64(astroportMsg),
-        funds: [{ denom: CHAIN_DENOM, amount: lunaAmount10 }],
+        msg: toBase64(astroportSwapMsg),
+        funds: [{ denom: CHAIN_DENOM, amount: lunaSwapAmount }],
       },
     },
   };
 
   const swapJsonString = JSON.stringify(swap);
 
+  const astroportSimulateSwapMsg = {
+    simulate_swap_operations: {
+      offer_amount: lunaSwapAmount,
+      operations: [
+        {
+          astro_swap: {
+            ask_asset_info: {
+              token: {
+                contract_addr: astroTokenAddress,
+              },
+            },
+            offer_asset_info: {
+              native_token: {
+                denom: CHAIN_DENOM,
+              },
+            },
+          },
+        },
+      ],
+    },
+  };
+
+  const jobVarName = 'luna-astro-price-10LUNA-receive-how-much-ASTRO';
+  const jobVar = {
+    query: {
+      // kind: 'int', // uint, amount, decimal are all allowed
+      kind: 'amount', // only int is not allowed since it expects result to be number, in fact result is string
+      name: jobVarName,
+      init_fn: {
+        query: {
+          wasm: {
+            smart: {
+              msg: toBase64(astroportSimulateSwapMsg),
+              contract_addr: astroportRouterAddress,
+            },
+          },
+        },
+        selector: '$.amount',
+      },
+      reinitialize: false,
+    },
+  };
+
   const condition = {
     expr: {
-      block_height: {
-        comparator: '0',
-        op: 'gt',
+      decimal: {
+        op: 'gte',
+        left: {
+          ref: `$warp.variable.${jobVarName}`,
+        },
+        right: {
+          simple: expectedReceivedAstroAmount,
+        },
       },
     },
   };
@@ -131,13 +188,14 @@ const run = async () => {
       reward: lunaReward,
       condition: condition,
       msgs: [swapJsonString],
-      vars: [],
+      vars: [jobVar],
     },
   });
 
   wallet
     .createAndSignTx({
       msgs: [fundWarpAccount, createJob],
+      // msgs: [createJob],
       chainID: CHAIN_ID,
     })
     .then((tx) => lcd.tx.broadcast(tx, CHAIN_ID))

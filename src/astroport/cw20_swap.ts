@@ -18,14 +18,14 @@ const myAddress = wallet.key.accAddress(CHAIN_PREFIX);
 const astroLunaPairAddress = ASTRO_LUNA_PAIR_ADDRESS!;
 const astroTokenAddress = ASTRO_TOKEN_ADDRESS!;
 
-const astroAmount5 = 5_000_000;
-const lunaAmount10 = 10_000_000;
+const astroAmount5 = (5_000_000).toString();
+const lunaAmount10 = (10_000_000).toString();
 
 const run = async () => {
   const swap = new MsgExecuteContract(myAddress, astroTokenAddress, {
     send: {
       contract: astroLunaPairAddress,
-      amount: astroAmount5.toString(),
+      amount: astroAmount5,
       msg: toBase64({
         swap: {
           ask_asset_info: {
