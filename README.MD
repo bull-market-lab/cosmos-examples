@@ -1,10 +1,10 @@
 # cosmos-examples
 
-list of examples interacting with cosmos chains and cw contracts.
+List of examples interacting with Cosmos SDK native modules (e.g. send native token) and CosmWasm contracts using [feather.js](https://github.com/terra-money/feather.js).
 
 ## available examples
 
-### warp
+### [warp](https://warp.money/)
 
 - create account
 - deposit account
@@ -15,7 +15,7 @@ list of examples interacting with cosmos chains and cw contracts.
 - execute job
 - delete job
 
-### astroport
+### [astroport](https://astroport.fi/)
 
 - increase allowance + provide liquidity
 - swap
@@ -23,3 +23,7 @@ list of examples interacting with cosmos chains and cw contracts.
   - cw20 swap (cw20 -> native, cw20 -> cw20)
   - multihop swap
   - simulate swap
+
+### warp x astroport
+
+- limit order
