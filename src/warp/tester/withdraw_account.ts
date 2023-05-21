@@ -1,4 +1,4 @@
-import { LUNA } from '@terra-money/warp-sdk';
+import { LUNA, CW20Token, CW20Addr } from '@terra-money/warp-sdk';
 import {
   getLCDOld,
   getMnemonicKeyOld,
@@ -6,17 +6,30 @@ import {
   initWarpSdk,
   printAxiosError,
 } from '../../util';
+import { ASTRO_TOKEN_ADDRESS } from '../../env';
 
 const mnemonicKey = getMnemonicKeyOld();
 const lcd = getLCDOld();
 const wallet = getWalletOld(lcd, mnemonicKey);
 const warpSdk = initWarpSdk(lcd, wallet);
 
-const amount = 68_950_000;
+const amount = 87154475;
+const nativeToken = LUNA;
+const astro: CW20Token = {
+  key: 'astro',
+  name: 'Astro',
+  symbol: 'ASTRO',
+  icon: '',
+  decimals: 6,
+  type: 'cw20',
+  protocol: 'astroport',
+  token: ASTRO_TOKEN_ADDRESS! as CW20Addr,
+};
 
 const run = async () => {
   warpSdk
-    .withdrawFromAccount(wallet.key.accAddress, wallet.key.accAddress, LUNA, amount.toString())
+    // .withdrawFromAccount(wallet.key.accAddress, wallet.key.accAddress, nativeToken, amount.toString())
+    .withdrawFromAccount(wallet.key.accAddress, wallet.key.accAddress, astro, amount.toString())
     .then((txInfo) => {
       console.log(txInfo);
     })

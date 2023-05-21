@@ -33,6 +33,7 @@ const run = async () => {
         max_spread: '0.5',
         // minimum_receive: '9500000000',
         // to: '...', // default to sender
+        // attach multiple operation to achieve multiple hop
         operations: [
           {
             astro_swap: {

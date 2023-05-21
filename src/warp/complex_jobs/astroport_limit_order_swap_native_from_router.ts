@@ -39,10 +39,10 @@ const lunaAmount1 = (1_000_000).toString();
 // when max_spread and minimum_receive are both specified, the swap will fail if receive amount is not in the range of [minimum_receive, return_amount * (1 +/- max_spread)]
 // actually i think i only need to specify minimum_receive in condition
 // no need for actual swap msg cause checking condition is atomic with executing swap msg
-const expectedReceivedAstroAmount = (9_810_335).toString();
+const expectedReceivedAstroAmount = (9_010_335).toString();
 // default spread is 0.01 which is 1%
 // maybe i don't need to specify spread in swap msg, as condition already ensure i get the price i want
-const maxSpread = '0.001';
+const maxSpread = '0.1';
 
 const run = async () => {
   const warpConfig = await lcd.wasm.contractQuery(warpControllerAddress, {
@@ -60,10 +60,9 @@ const run = async () => {
   const warpAccountAddress: string = warpAccount.account.account;
 
   const lunaSwapAmount = lunaAmount10;
-  const lunaReward = lunaAmount1;
-  const lunaSendAmount = Big(lunaReward)
+  const lunaJobReward = lunaAmount1;
+  const lunaJobRewardAndCreationFee = Big(lunaJobReward)
     .mul(Big(warpCreationFeePercentages).add(100).div(100))
-    .add(lunaSwapAmount)
     .toString();
 
   // TODO: warp currently doesn't support create account and fund it in 1 tx, but it's in feature branch
@@ -71,21 +70,12 @@ const run = async () => {
   //   create_account: {},
   // });
 
-  // send 10 LUNA to warp account to use it for swap
-  const fundWarpAccount = new MsgSend(myAddress, warpAccountAddress, {
-    uluna: lunaSendAmount,
+  const fundWarpAccountForJobRewardAndCreationFee = new MsgSend(myAddress, warpAccountAddress, {
+    uluna: lunaJobRewardAndCreationFee,
   });
-
-  // const fund = {
-  //   bank: {
-  //     send: {
-  //       amount: [{ denom: CHAIN_DENOM, amount: lunaAmount10 }],
-  //       to_address: warpAccountAddress,
-  //     },
-  //   },
-  // };
-
-  // const fundJsonString = JSON.stringify(fund);
+  const fundWarpAccountForOfferedAmount = new MsgSend(myAddress, warpAccountAddress, {
+    uluna: lunaSwapAmount,
+  });
 
   const astroportSwapMsg = {
     execute_swap_operations: {
@@ -182,10 +172,10 @@ const run = async () => {
 
   const createJob = new MsgExecuteContract(myAddress, warpControllerAddress, {
     create_job: {
-      name: 'astroport_limit_order',
+      name: 'astroport_limit_order_astro_to_luna_from_router',
       recurring: false,
       requeue_on_evict: false,
-      reward: lunaReward,
+      reward: lunaJobReward,
       condition: condition,
       msgs: [swapJsonString],
       vars: [jobVar],
@@ -194,7 +184,7 @@ const run = async () => {
 
   wallet
     .createAndSignTx({
-      msgs: [fundWarpAccount, createJob],
+      msgs: [fundWarpAccountForJobRewardAndCreationFee, fundWarpAccountForOfferedAmount, createJob],
       // msgs: [createJob],
       chainID: CHAIN_ID,
     })

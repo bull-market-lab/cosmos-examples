@@ -12,9 +12,19 @@ const wallet = getWalletOld(lcd, mnemonicKey);
 const warpSdk = initWarpSdk(lcd, wallet);
 const owner = wallet.key.accAddress;
 
-const run = async () => {
+const run = async (jobId?: string) => {
+  if (!jobId) {
+    jobId = await warpSdk
+      .jobs()
+      .then((jobs) => jobs[0].id)
+      .catch((e) => {
+        printAxiosError(e);
+        throw e;
+      });
+  }
+  console.log('latest jobId', jobId);
   warpSdk
-    .executeJob(owner, '24')
+    .executeJob(owner, jobId)
     .then((txInfo) => console.log(txInfo))
     .catch((e) => {
       printAxiosError(e);
@@ -22,4 +32,5 @@ const run = async () => {
     });
 };
 
+// run('42');
 run();
