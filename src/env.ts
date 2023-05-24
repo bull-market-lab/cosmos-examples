@@ -17,6 +17,9 @@ export const SKIP_RPC_ENDPOINT: string | undefined = env.SKIP_RPC_ENDPOINT;
 
 export const WARP_CONTROLLER_ADDRESS: string | undefined = env.WARP_CONTROLLER_ADDRESS;
 
+export const ENTERPRISE_FACTORY_ADDRESS: string | undefined = env.ENTERPRISE_FACTORY_ADDRESS;
+export const ENTERPRISE_DAO_ADDRESS: string | undefined = env.ENTERPRISE_DAO_ADDRESS;
+
 export const ASTRO_LUNA_PAIR_ADDRESS: string | undefined = env.ASTRO_LUNA_PAIR_ADDRESS;
 export const ASTRO_TOKEN_ADDRESS: string | undefined = env.ASTRO_TOKEN_ADDRESS;
 export const ASTROPORT_ROUTER_ADDRESS: string | undefined = env.ASTROPORT_ROUTER_ADDRESS;

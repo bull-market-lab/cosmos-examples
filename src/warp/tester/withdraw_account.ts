@@ -13,7 +13,7 @@ const lcd = getLCDOld();
 const wallet = getWalletOld(lcd, mnemonicKey);
 const warpSdk = initWarpSdk(lcd, wallet);
 
-const amount = 87154475;
+const amount = 57_154_475;
 const nativeToken = LUNA;
 const astro: CW20Token = {
   key: 'astro',
@@ -28,8 +28,13 @@ const astro: CW20Token = {
 
 const run = async () => {
   warpSdk
-    // .withdrawFromAccount(wallet.key.accAddress, wallet.key.accAddress, nativeToken, amount.toString())
-    .withdrawFromAccount(wallet.key.accAddress, wallet.key.accAddress, astro, amount.toString())
+    .withdrawFromAccount(
+      wallet.key.accAddress,
+      wallet.key.accAddress,
+      nativeToken,
+      amount.toString()
+    )
+    // .withdrawFromAccount(wallet.key.accAddress, wallet.key.accAddress, astro, amount.toString())
     .then((txInfo) => {
       console.log(txInfo);
     })
