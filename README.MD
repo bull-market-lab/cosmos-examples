@@ -15,6 +15,14 @@ List of examples interacting with Cosmos SDK native modules (e.g. send native to
 - execute job
 - delete job
 
+### [enterprise](https://enterprise.money/)
+
+- create multisig dao
+- create text proposal
+- query proposal status
+- vote proposal
+- execute proposal
+
 ### [astroport](https://astroport.fi/)
 
 - increase allowance + provide liquidity
