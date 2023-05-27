@@ -1,6 +1,14 @@
 import Big from 'big.js';
 import { MsgExecuteContract, MsgSend } from '@terra-money/feather.js';
-import { getLCD, getMnemonicKey, getWallet, printAxiosError, toBase64 } from '../../util';
+import {
+  getLCD,
+  getMnemonicKey,
+  getWallet,
+  getWarpAccountAddress,
+  getWarpJobCreationFeePercentage,
+  printAxiosError,
+  toBase64,
+} from '../../util';
 import {
   ASTRO_LUNA_PAIR_ADDRESS,
   CHAIN_DENOM,
@@ -32,19 +40,8 @@ const expectedReceivedAstroAmount = (9_091_852).toString();
 const maxSpread = '0.1';
 
 const run = async () => {
-  const warpConfig = await lcd.wasm.contractQuery(warpControllerAddress, {
-    query_config: {},
-  });
-  // @ts-ignore
-  const warpCreationFeePercentages = warpConfig.config.creation_fee_percentage;
-
-  const warpAccount = await lcd.wasm.contractQuery(warpControllerAddress, {
-    query_account: {
-      owner: myAddress,
-    },
-  });
-  // @ts-ignore
-  const warpAccountAddress: string = warpAccount.account.account;
+  const warpCreationFeePercentages = await getWarpJobCreationFeePercentage(lcd);
+  const warpAccountAddress = await getWarpAccountAddress(lcd, myAddress);
 
   const lunaSwapAmount = lunaAmount10;
   const lunaJobReward = lunaAmount1;

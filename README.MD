@@ -39,3 +39,7 @@ List of examples interacting with Cosmos SDK native modules (e.g. send native to
   - swap from cw20 through pool
   - swap from native through router
   - swap from cw20 through router
+
+### warp x enterprise
+
+- execute proposal upon passing (note this doesn't work now because enterprise won't update proposal status even it becomes executable, we need a function to check proposal voting result to determine if it's executable, not something can be done easily in warp condition query)

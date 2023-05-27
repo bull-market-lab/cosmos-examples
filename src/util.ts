@@ -99,3 +99,23 @@ export const getWallet = (lcd: LCDClient, mnemonicKey: MnemonicKey): Wallet => {
 export const toBase64 = (obj: Object) => {
   return Buffer.from(JSON.stringify(obj)).toString('base64');
 };
+
+export const getWarpAccountAddress = async (lcd: LCDClient, owner: string): Promise<string> => {
+  const warpControllerAddress = WARP_CONTROLLER_ADDRESS!;
+  const warpAccount = await lcd.wasm.contractQuery(warpControllerAddress, {
+    query_account: {
+      owner: owner,
+    },
+  });
+  // @ts-ignore
+  return warpAccount.account.account;
+};
+
+export const getWarpJobCreationFeePercentage = async (lcd: LCDClient): Promise<string> => {
+  const warpControllerAddress = WARP_CONTROLLER_ADDRESS!;
+  const warpConfig = await lcd.wasm.contractQuery(warpControllerAddress, {
+    query_config: {},
+  });
+  // @ts-ignore
+  return warpConfig.config.creation_fee_percentage;
+};

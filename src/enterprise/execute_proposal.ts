@@ -1,16 +1,16 @@
 import { CHAIN_ID, ENTERPRISE_DAO_ADDRESS } from '../env';
 import { MsgExecuteContract } from '@terra-money/feather.js';
-import { getLCD, getMnemonicKey, getWallet } from '../util';
+import { getLCD, getMnemonicKey, getWallet, printAxiosError } from '../util';
 
 const mnemonicKey = getMnemonicKey();
 const lcd = getLCD();
 const wallet = getWallet(lcd, mnemonicKey);
 const enterpriseDaoAddress = ENTERPRISE_DAO_ADDRESS!;
 
-export const executeProposal = async () => {
+const run = async () => {
   const executeMsg = {
     execute_proposal: {
-      proposal_id: 1,
+      proposal_id: 2,
     },
   };
   const execute = new MsgExecuteContract(
@@ -25,10 +25,26 @@ export const executeProposal = async () => {
     // { uluna: 100000 } // coins
   );
 
-  const executeTx = await wallet.createAndSignTx({
-    msgs: [execute],
-    chainID: CHAIN_ID,
-  });
-
-  lcd.tx.broadcast(executeTx, CHAIN_ID).then((result) => console.log(result));
+  wallet
+    .createAndSignTx({
+      msgs: [execute],
+      // msgs: [createJob],
+      chainID: CHAIN_ID,
+    })
+    .then((tx) => lcd.tx.broadcast(tx, CHAIN_ID))
+    .catch((e) => {
+      console.log('error in create and sign tx');
+      printAxiosError(e);
+      throw e;
+    })
+    .then((txInfo) => {
+      console.log(txInfo);
+    })
+    .catch((e) => {
+      console.log('error in broadcast tx');
+      printAxiosError(e);
+      throw e;
+    });
 };
+
+run();
