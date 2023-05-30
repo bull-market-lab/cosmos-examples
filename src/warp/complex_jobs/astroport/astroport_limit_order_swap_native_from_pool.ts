@@ -8,14 +8,14 @@ import {
   getWarpJobCreationFeePercentage,
   printAxiosError,
   toBase64,
-} from '../../util';
+} from '../../../util';
 import {
   ASTRO_LUNA_PAIR_ADDRESS,
   CHAIN_DENOM,
   CHAIN_ID,
   CHAIN_PREFIX,
   WARP_CONTROLLER_ADDRESS,
-} from '../../env';
+} from '../../../env';
 
 const mnemonicKey = getMnemonicKey();
 const lcd = getLCD();
