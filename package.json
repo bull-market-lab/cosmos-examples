@@ -47,6 +47,7 @@
     "warp-create-account": "ts-node src/warp/tester/create_account.ts",
     "warp-deposit-account": "ts-node src/warp/tester/deposit_account.ts",
     "warp-withdraw-account": "ts-node src/warp/tester/withdraw_account.ts",
+    "warp-withdraw-account-without-sdk": "ts-node src/warp/tester/withdraw_account_without_sdk.ts",
     "warp-create-job": "ts-node src/warp/tester/create_job.ts",
     "warp-update-job": "ts-node src/warp/tester/update_job.ts",
     "warp-delete-job": "ts-node src/warp/tester/delete_job.ts",
