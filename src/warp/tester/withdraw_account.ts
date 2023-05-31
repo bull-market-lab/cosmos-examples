@@ -13,7 +13,7 @@ const lcd = getLCDOld();
 const wallet = getWalletOld(lcd, mnemonicKey);
 const warpSdk = initWarpSdk(lcd, wallet);
 
-const amount = 15_310_000;
+const amount = 0_060_000;
 const nativeToken = LUNA;
 const astro: CW20Token = {
   key: 'astro',
