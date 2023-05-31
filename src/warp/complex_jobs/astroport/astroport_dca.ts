@@ -41,22 +41,21 @@ const maxSpread = '0.01';
 
 const lunaSwapAmount = lunaAmount7;
 
-// run 3 times,
-const dcaNumber = (3).toString();
+// run 5 times,
+const dcaNumber = (5).toString();
 
-// +1 to cover the last dummy job
-const dcaNumberPlus1 = (4).toString();
+// +1 to cover the first job
+const dcaNumberPlus1 = (6).toString();
 
-// dcaInterval is in seconds
 // 86400 is 1 day in seconds
 // const dcaInterval = 60 * 60 * 24 * 7;
-// make it shorter for testing, 5 seconds
-const dcaInterval = (5).toString();
+// make it shorter for testing, 30 seconds
+const dcaInterval = (30).toString();
 // initial value is current timestamp
 const dcaStartTime = String(Math.floor(Date.now() / 1000));
 
-// round down to 0 decimal places to avoid running out of fund, singleSwapAmount must be integer since it's in uluna
-const singleSwapAmount = Big(lunaSwapAmount).div(dcaNumber).round(0, 0).toString();
+// round down to 3 decimal places to avoid running out of fund
+const singleSwapAmount = Big(lunaSwapAmount).div(dcaNumber).round(3, 0).toString();
 
 const run = async () => {
   const warpCreationFeePercentages = await getWarpJobCreationFeePercentage(lcd);
@@ -67,8 +66,6 @@ const run = async () => {
   const lunaJobFee = Big(lunaJobReward)
     .mul(Big(warpCreationFeePercentages).add(100).div(100))
     .add(10_000) // eviction fee 0.01
-    // use dcaNumber if you want to reproduce the case last job succeeded but no recurring job created and swap failed
-    // more scary FUND WILL BE LOST!!!
     .mul(dcaNumberPlus1) // each recurring job needs to pay creation fee and reward
     .toString();
 
