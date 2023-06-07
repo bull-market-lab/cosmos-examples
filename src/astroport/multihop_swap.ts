@@ -1,13 +1,6 @@
-import { Coins, MsgExecuteContract } from '@terra-money/feather.js';
-import { getLCD, getMnemonicKey, getWallet, printAxiosError } from '../util';
-import {
-  ASTROPORT_ROUTER_ADDRESS,
-  ASTRO_LUNA_PAIR_ADDRESS,
-  ASTRO_TOKEN_ADDRESS,
-  CHAIN_DENOM,
-  CHAIN_ID,
-  CHAIN_PREFIX,
-} from '../env';
+import { Coins, MsgExecuteContract } from "@terra-money/feather.js";
+import { createSignBroadcastCatch, getLCD, getMnemonicKey, getWallet } from "../util";
+import { ASTROPORT_ROUTER_ADDRESS, ASTRO_TOKEN_ADDRESS, CHAIN_DENOM, CHAIN_PREFIX } from "../env";
 
 const mnemonicKey = getMnemonicKey();
 const lcd = getLCD();
@@ -30,7 +23,7 @@ const run = async () => {
     astroportRouterAddress,
     {
       execute_swap_operations: {
-        max_spread: '0.5',
+        max_spread: "0.5",
         // minimum_receive: '9500000000',
         // to: '...', // default to sender
         // attach multiple operation to achieve multiple hop
@@ -55,25 +48,7 @@ const run = async () => {
     new Coins({ [CHAIN_DENOM]: lunaAmount10 })
   );
 
-  wallet
-    .createAndSignTx({
-      msgs: [swap],
-      chainID: CHAIN_ID,
-    })
-    .then((tx) => lcd.tx.broadcast(tx, CHAIN_ID))
-    .catch((e) => {
-      console.log('error in create and sign tx');
-      printAxiosError(e);
-      throw e;
-    })
-    .then((txInfo) => {
-      console.log(txInfo);
-    })
-    .catch((e) => {
-      console.log('error in broadcast tx');
-      printAxiosError(e);
-      throw e;
-    });
+  createSignBroadcastCatch(wallet, [swap]);
 };
 
 run();

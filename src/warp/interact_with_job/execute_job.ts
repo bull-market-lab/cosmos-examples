@@ -4,7 +4,7 @@ import {
   getWalletOld,
   initWarpSdk,
   printAxiosError,
-} from '../../util';
+} from "../../util";
 
 const mnemonicKey = getMnemonicKeyOld(true);
 const lcd = getLCDOld();
@@ -22,7 +22,7 @@ const run = async (jobId?: string) => {
         throw e;
       });
   }
-  console.log('latest jobId', jobId);
+  console.log("latest jobId", jobId);
   warpSdk
     .executeJob(owner, jobId)
     .then((txInfo) => console.log(txInfo))

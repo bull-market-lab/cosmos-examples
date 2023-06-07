@@ -1,21 +1,20 @@
-import Big from 'big.js';
-import { MsgExecuteContract, MsgSend } from '@terra-money/feather.js';
+import Big from "big.js";
+import { MsgExecuteContract, MsgSend } from "@terra-money/feather.js";
 import {
+  createSignBroadcastCatch,
   getLCD,
   getMnemonicKey,
   getWallet,
   getWarpAccountAddress,
   getWarpJobCreationFeePercentage,
-  printAxiosError,
   toBase64,
-} from '../../../util';
+} from "../../../util";
 import {
   ASTRO_LUNA_PAIR_ADDRESS,
   CHAIN_DENOM,
-  CHAIN_ID,
   CHAIN_PREFIX,
   WARP_CONTROLLER_ADDRESS,
-} from '../../../env';
+} from "../../../env";
 
 const mnemonicKey = getMnemonicKey();
 const lcd = getLCD();
@@ -37,7 +36,7 @@ const lunaAmount1 = (1_000_000).toString();
 const expectedReceivedAstroAmount = (9_091_852).toString();
 // default spread is 0.01 which is 1%
 // maybe i don't need to specify spread in swap msg, as condition already ensure i get the price i want
-const maxSpread = '0.01';
+const maxSpread = "0.01";
 
 const lunaSwapAmount = lunaAmount7;
 
@@ -115,10 +114,10 @@ const run = async () => {
   };
   const nativeSwapJsonString = JSON.stringify(nativeSwap);
 
-  const jobVarNameNextExecution = 'swap-luna-to-astro-recursively';
+  const jobVarNameNextExecution = "swap-luna-to-astro-recursively";
   const jobVarNextExecution = {
     static: {
-      kind: 'uint', // NOTE: it's better to use uint instead of timestamp to keep it consistent with condition
+      kind: "uint", // NOTE: it's better to use uint instead of timestamp to keep it consistent with condition
       name: jobVarNameNextExecution,
       value: dcaStartTime,
       update_fn: {
@@ -129,9 +128,9 @@ const run = async () => {
               left: {
                 simple: dcaInterval,
               },
-              op: 'add',
+              op: "add",
               right: {
-                env: 'time',
+                env: "time",
               },
             },
           },
@@ -143,10 +142,10 @@ const run = async () => {
     },
   };
 
-  const jobVarNameAlreadyRunCounter = 'swap-luna-to-astro-recursively-counter';
+  const jobVarNameAlreadyRunCounter = "swap-luna-to-astro-recursively-counter";
   const jobVarAlreadyRunCounter = {
     static: {
-      kind: 'int',
+      kind: "int",
       name: jobVarNameAlreadyRunCounter,
       value: (0).toString(), // initial counter value is 0
       update_fn: {
@@ -157,7 +156,7 @@ const run = async () => {
               left: {
                 ref: `$warp.variable.${jobVarNameAlreadyRunCounter}`,
               },
-              op: 'add',
+              op: "add",
               right: {
                 simple: (1).toString(),
               },
@@ -179,9 +178,9 @@ const run = async () => {
             // NOTE: we must use uint instead of timestamp here as timestamp can only compare current time with var
             // there is no left side of expression
             left: {
-              env: 'time',
+              env: "time",
             },
-            op: 'gt',
+            op: "gt",
             right: {
               ref: `$warp.variable.${jobVarNameNextExecution}`,
             },
@@ -194,7 +193,7 @@ const run = async () => {
             left: {
               ref: `$warp.variable.${jobVarNameAlreadyRunCounter}`,
             },
-            op: 'lt',
+            op: "lt",
             right: {
               simple: dcaNumber,
             },
@@ -206,7 +205,7 @@ const run = async () => {
 
   const createJob = new MsgExecuteContract(myAddress, warpControllerAddress, {
     create_job: {
-      name: 'astroport_dca_order_luna_to_astro_from_pool',
+      name: "astroport_dca_order_luna_to_astro_from_pool",
       recurring: true,
       requeue_on_evict: true,
       reward: lunaJobReward,
@@ -216,28 +215,11 @@ const run = async () => {
     },
   });
 
-  wallet
-    .createAndSignTx({
-      msgs: [fundWarpAccountForJobRewardAndCreationFee, fundWarpAccountForOfferedAmount, createJob],
-      chainID: CHAIN_ID,
-      //   gasPrices: '0.15uluna',
-      //   gasAdjustment: 1.4,
-      //   gas: (1_500_793).toString(),
-    })
-    .then((tx) => lcd.tx.broadcast(tx, CHAIN_ID))
-    .catch((e) => {
-      console.log('error in create and sign tx');
-      printAxiosError(e);
-      throw e;
-    })
-    .then((txInfo) => {
-      console.log(txInfo);
-    })
-    .catch((e) => {
-      console.log('error in broadcast tx');
-      printAxiosError(e);
-      throw e;
-    });
+  createSignBroadcastCatch(wallet, [
+    fundWarpAccountForJobRewardAndCreationFee,
+    fundWarpAccountForOfferedAmount,
+    createJob,
+  ]);
 };
 
 run();

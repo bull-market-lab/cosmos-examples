@@ -1,12 +1,6 @@
-import { Coins, MsgExecuteContract } from '@terra-money/feather.js';
-import { getLCD, getMnemonicKey, getWallet, printAxiosError } from '../util';
-import {
-  ASTRO_LUNA_PAIR_ADDRESS,
-  ASTRO_TOKEN_ADDRESS,
-  CHAIN_DENOM,
-  CHAIN_ID,
-  CHAIN_PREFIX,
-} from '../env';
+import { Coins, MsgExecuteContract } from "@terra-money/feather.js";
+import { createSignBroadcastCatch, getLCD, getMnemonicKey, getWallet } from "../util";
+import { ASTRO_LUNA_PAIR_ADDRESS, ASTRO_TOKEN_ADDRESS, CHAIN_DENOM, CHAIN_PREFIX } from "../env";
 
 const mnemonicKey = getMnemonicKey();
 const lcd = getLCD();
@@ -43,32 +37,14 @@ const run = async () => {
         */
         // belief_price: beliefPrice,
         // max_spread: '0.005',
-        max_spread: '0.5',
+        max_spread: "0.5",
         // to: '...', // default to sender
       },
     },
     new Coins({ [CHAIN_DENOM]: lunaAmount10 })
   );
 
-  wallet
-    .createAndSignTx({
-      msgs: [swap],
-      chainID: CHAIN_ID,
-    })
-    .then((tx) => lcd.tx.broadcast(tx, CHAIN_ID))
-    .catch((e) => {
-      console.log('error in create and sign tx');
-      printAxiosError(e);
-      throw e;
-    })
-    .then((txInfo) => {
-      console.log(txInfo);
-    })
-    .catch((e) => {
-      console.log('error in broadcast tx');
-      printAxiosError(e);
-      throw e;
-    });
+  createSignBroadcastCatch(wallet, [swap]);
 };
 
 // swap from native to native or cw20, e.g. LUNA to ASTRO or LUNA to UST

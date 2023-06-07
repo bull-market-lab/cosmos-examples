@@ -1,12 +1,12 @@
-import { warp_controller } from '@terra-money/warp-sdk';
+import { warp_controller } from "@terra-money/warp-sdk";
 import {
   getLCDOld,
   getMnemonicKeyOld,
   getWalletOld,
   initWarpSdk,
   printAxiosError,
-} from '../../util';
-import { CreateTxOptions, Coins, MsgExecuteContract } from '@terra-money/terra.js';
+} from "../../util";
+import { CreateTxOptions, Coins, MsgExecuteContract } from "@terra-money/terra.js";
 
 function executeMsg<T extends {}>(sender: string, contract: string, msg: T, coins?: Coins.Input) {
   return new MsgExecuteContract(sender, contract, msg, coins);
@@ -44,7 +44,7 @@ const run = async () => {
     .then((tx) => wallet.lcd.tx.broadcast(tx))
     .then((txInfo) => {
       console.log(txInfo);
-      console.log('created all jobs');
+      console.log("created all jobs");
     })
     .catch((e) => {
       printAxiosError(e);

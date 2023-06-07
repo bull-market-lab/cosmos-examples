@@ -153,3 +153,38 @@ but we have a stuck job reward (1 LUNA) at warp controller
   }
 }
 ```
+
+# authz
+
+tried
+
+  const exec = {
+    grantee: warpAccountAddress,
+    msgs: [
+      {
+        type_url: "/cosmos.distribution.v1beta1.MsgWithdrawDelegatorReward",
+        value: toBase64({
+          delegator_address: myAddress,
+          validator_address: localterraValidator,
+        }),
+      },
+    ],
+  };
+  Code=2 Message=failed to execute message; message index: 0: dispatch: submessages: Cannot unpack proto message with type URL: /cosmos.authz.v1beta1.MsgExec: invalid CosmosMsg from the contract [CosmWasm/wasmd@v0.30.0/x/wasm/keeper/handler_plugin_encoders.go:201] With gas wanted: '50000000' and gas used: '117846'
+
+  const exec = {
+    grantee: warpAccountAddress,
+    // msgs: [
+    //   {
+    //     type_url: "/cosmos.distribution.v1beta1.MsgWithdrawDelegatorReward",
+    //     value: toBase64({
+    //       delegator_address: myAddress,
+    //       validator_address: localterraValidator,
+    //     }),
+    //   },
+    // ],
+  };
+  Code=2 Message=failed to execute message; message index: 0: dispatch: submessages: Cannot unpack proto message with type URL: /cosmos.authz.v1beta1.MsgExec: invalid CosmosMsg from the contract [CosmWasm/wasmd@v0.30.0/x/wasm/keeper/handler_plugin_encoders.go:201] With gas wanted: '50000000' and gas used: '113606'
+
+  const exec = ""
+  Code=2 Message=failed to execute message; message index: 0: dispatch: submessages: invalid grantee address: empty address string is not allowed: invalid address [cosmossdk.io/errors@v1.0.0-beta.7/errors.go:153] With gas wanted: '50000000' and gas used: '112434'

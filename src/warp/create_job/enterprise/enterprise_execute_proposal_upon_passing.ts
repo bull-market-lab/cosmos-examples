@@ -1,20 +1,15 @@
-import Big from 'big.js';
-import { MsgExecuteContract, MsgSend } from '@terra-money/feather.js';
+import Big from "big.js";
+import { MsgExecuteContract, MsgSend } from "@terra-money/feather.js";
 import {
+  createSignBroadcastCatch,
   getLCD,
   getMnemonicKey,
   getWallet,
   getWarpAccountAddress,
   getWarpJobCreationFeePercentage,
-  printAxiosError,
   toBase64,
-} from '../../../util';
-import {
-  CHAIN_ID,
-  CHAIN_PREFIX,
-  ENTERPRISE_DAO_ADDRESS,
-  WARP_CONTROLLER_ADDRESS,
-} from '../../../env';
+} from "../../../util";
+import { CHAIN_PREFIX, ENTERPRISE_DAO_ADDRESS, WARP_CONTROLLER_ADDRESS } from "../../../env";
 
 const mnemonicKey = getMnemonicKey();
 const lcd = getLCD();
@@ -75,11 +70,11 @@ const run = async () => {
     },
   };
 
-  const jobVarName = 'enterprise-proposal-status';
+  const jobVarName = "enterprise-proposal-status";
   const jobVar = {
     query: {
       // kind: 'int', // uint, amount, decimal are all allowed
-      kind: 'string', // only int is not allowed since it expects result to be number, in fact result is string
+      kind: "string", // only int is not allowed since it expects result to be number, in fact result is string
       name: jobVarName,
       init_fn: {
         query: {
@@ -90,7 +85,7 @@ const run = async () => {
             },
           },
         },
-        selector: '$.status',
+        selector: "$.status",
       },
       reinitialize: false,
     },
@@ -99,12 +94,12 @@ const run = async () => {
   // NOTE: this doesn't work right now, enterprise will keep the proposal status as 'in_progress' even it's executable
   // enterprise UI has a function to check the proposal voting result and determine whether it's executable
   // we need to replicate that function in warp condition check to make it work
-  const expectedEnterpriseProposalStatus = 'passed';
+  const expectedEnterpriseProposalStatus = "passed";
 
   const condition = {
     expr: {
       string: {
-        op: 'eq',
+        op: "eq",
         left: {
           ref: `$warp.variable.${jobVarName}`,
         },
@@ -117,7 +112,7 @@ const run = async () => {
 
   const createJob = new MsgExecuteContract(myAddress, warpControllerAddress, {
     create_job: {
-      name: 'enterprise_execute_proposal_upon_passing',
+      name: "enterprise_execute_proposal_upon_passing",
       recurring: false,
       requeue_on_evict: false,
       reward: lunaJobReward,
@@ -127,26 +122,7 @@ const run = async () => {
     },
   });
 
-  wallet
-    .createAndSignTx({
-      msgs: [fundWarpAccountForJobRewardAndCreationFee, createJob],
-      // msgs: [createJob],
-      chainID: CHAIN_ID,
-    })
-    .then((tx) => lcd.tx.broadcast(tx, CHAIN_ID))
-    .catch((e) => {
-      console.log('error in create and sign tx');
-      printAxiosError(e);
-      throw e;
-    })
-    .then((txInfo) => {
-      console.log(txInfo);
-    })
-    .catch((e) => {
-      console.log('error in broadcast tx');
-      printAxiosError(e);
-      throw e;
-    });
+  createSignBroadcastCatch(wallet, [fundWarpAccountForJobRewardAndCreationFee, createJob]);
 };
 
 run();

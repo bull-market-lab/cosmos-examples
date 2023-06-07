@@ -1,23 +1,30 @@
+import { warp_controller, LUNA } from "@terra-money/warp-sdk";
 import {
   getLCDOld,
   getMnemonicKeyOld,
   getWalletOld,
   initWarpSdk,
   printAxiosError,
-} from '../../util';
+} from "../../util";
 
 const mnemonicKey = getMnemonicKeyOld();
 const lcd = getLCDOld();
 const wallet = getWalletOld(lcd, mnemonicKey);
 const warpSdk = initWarpSdk(lcd, wallet);
-const owner = wallet.key.accAddress;
 
 const run = async () => {
+  const warpAccountAddress = await warpSdk
+    .account(wallet.key.accAddress)
+    .then((warp_account: warp_controller.Account) => {
+      return warp_account.account;
+    });
+
+  const amount = (70_000_000).toString();
+
   warpSdk
-    .evictJob(owner, '5')
+    .depositToAccount(wallet.key.accAddress, warpAccountAddress, LUNA, amount)
     .then((txInfo) => {
       console.log(txInfo);
-      console.log('evicted job');
     })
     .catch((e) => {
       printAxiosError(e);

@@ -1,12 +1,12 @@
-import axios from 'axios';
+import axios from "axios";
 import {
   LCDClient as LCDClientOld,
   MnemonicKey as MnemonicKeyOld,
   Wallet as WalletOld,
-} from '@terra-money/terra.js';
-import { LCDClient, MnemonicKey, Wallet } from '@terra-money/feather.js';
+} from "@terra-money/terra.js";
+import { LCDClient, MnemonicKey, Msg, Wallet } from "@terra-money/feather.js";
 
-import { getContractAddress, getNetworkName, WarpSdk } from '@terra-money/warp-sdk';
+import { getContractAddress, getNetworkName, WarpSdk } from "@terra-money/warp-sdk";
 import {
   CHAIN_DENOM,
   CHAIN_ID,
@@ -15,8 +15,8 @@ import {
   TESTER1_MNEMONIC_KEY,
   TESTER2_MNEMONIC_KEY,
   WARP_CONTROLLER_ADDRESS,
-} from './env';
-import { CHAIN_ID_LOCALTERRA } from './constant';
+} from "./env";
+import { CHAIN_ID_LOCALTERRA } from "./constant";
 
 export const getLCDOld = (): LCDClientOld => {
   return new LCDClientOld({
@@ -41,35 +41,12 @@ export const initWarpSdk = (lcd: LCDClientOld, wallet: WalletOld): WarpSdk => {
   const contractAddress =
     CHAIN_ID === CHAIN_ID_LOCALTERRA
       ? WARP_CONTROLLER_ADDRESS!
-      : getContractAddress(getNetworkName(lcd.config.chainID), 'warp-controller')!;
+      : getContractAddress(getNetworkName(lcd.config.chainID), "warp-controller")!;
   return new WarpSdk(wallet, contractAddress);
 };
 
 export const getCurrentBlockHeight = async (lcd: LCDClientOld): Promise<string> => {
   return (await lcd.tendermint.blockInfo()).block.header.height;
-};
-
-// if is axios error then print the extracted part otherwise print whole error
-// most of time it should be cause axios error is the one returned when we call lcd
-export const printAxiosError = (e: any) => {
-  if (axios.isAxiosError(e)) {
-    if (e.response) {
-      console.log(e.response.status);
-      console.log(e.response.headers);
-      if (
-        typeof e.response.data === 'object' &&
-        e.response.data !== null &&
-        'code' in e.response.data &&
-        'message' in e.response.data
-      ) {
-        console.log(`Code=${e.response?.data['code']} Message=${e.response?.data['message']} \n`);
-      } else {
-        console.log(e.response.data);
-      }
-    }
-  } else {
-    console.log(e);
-  }
 };
 
 export const getLCD = (): LCDClient => {
@@ -97,7 +74,12 @@ export const getWallet = (lcd: LCDClient, mnemonicKey: MnemonicKey): Wallet => {
 };
 
 export const toBase64 = (obj: Object) => {
-  return Buffer.from(JSON.stringify(obj)).toString('base64');
+  return Buffer.from(JSON.stringify(obj)).toString("base64");
+};
+
+// !!! stargate msg value is binary encoded unlike others that are json encoded
+export const toBase64FromBinary = (b: Uint8Array) => {
+  return Buffer.from(b).toString("base64");
 };
 
 export const getWarpAccountAddress = async (lcd: LCDClient, owner: string): Promise<string> => {
@@ -118,4 +100,52 @@ export const getWarpJobCreationFeePercentage = async (lcd: LCDClient): Promise<s
   });
   // @ts-ignore
   return warpConfig.config.creation_fee_percentage;
+};
+
+// if is axios error then print the extracted part otherwise print whole error
+// most of time it should be cause axios error is the one returned when we call lcd
+export const printAxiosError = (e: any) => {
+  if (axios.isAxiosError(e)) {
+    if (e.response) {
+      console.log(e.response.status);
+      console.log(e.response.headers);
+      if (
+        typeof e.response.data === "object" &&
+        e.response.data !== null &&
+        "code" in e.response.data &&
+        "message" in e.response.data
+      ) {
+        console.log(`Code=${e.response?.data["code"]} Message=${e.response?.data["message"]} \n`);
+      } else {
+        console.log(e.response.data);
+      }
+    }
+  } else {
+    console.log(e);
+  }
+};
+
+export const createSignBroadcastCatch = async (wallet: Wallet, msgs: Msg[]) => {
+  wallet
+    .createAndSignTx({
+      msgs: msgs,
+      chainID: CHAIN_ID,
+      //   gasPrices: '0.15uluna',
+      //   gasAdjustment: 1.4,
+      //   gas: (1_500_793).toString(),
+    })
+    .then((tx) => wallet.lcd.tx.broadcast(tx, CHAIN_ID))
+    .catch((e) => {
+      console.log("error in create and sign tx");
+      printAxiosError(e);
+      throw e;
+    })
+    .then((txInfo) => {
+      console.log(txInfo);
+    })
+    .catch((e) => {
+      console.log("error in broadcast tx");
+      printAxiosError(e);
+      throw e;
+    });
 };
