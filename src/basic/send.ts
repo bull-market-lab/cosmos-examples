@@ -9,11 +9,11 @@ const mnemonicKey2 = getMnemonicKey(true);
 const wallet1 = getWallet(lcd, mnemonicKey1);
 const wallet2 = getWallet(lcd, mnemonicKey2);
 
-const receiver = "terra1903a3ymy0klyzgvf2eguype6lvv83v0y50w48y";
+const receiver = "neutron1r623p6aqu6gupnhwvn8dhnwnt3p5tn90rdpvgq";
 
 const send = async () => {
   const stakeMsg = new MsgSend(wallet1.key.accAddress(CHAIN_PREFIX), receiver, {
-    uluna: (100_500_000).toString(),
+    untrn: (1_500_000).toString(),
   });
   createSignBroadcastCatch(wallet1, [stakeMsg]);
 };

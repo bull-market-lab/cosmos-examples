@@ -171,6 +171,8 @@ const run = async () => {
   const createJob = new MsgExecuteContract(myAddress, warpControllerAddress, {
     create_job: {
       name: "astroport_limit_order_astro_to_luna_from_router",
+      description: "limit order",
+      labels: [],
       recurring: false,
       requeue_on_evict: false,
       reward: lunaJobReward,

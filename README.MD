@@ -10,6 +10,12 @@ Create `.env` file from `example.env` and fill accordingly, please remember don'
 
 Every example is a runnable typescript script, take a look at `package.json` and run `npm run example-you-want` (e.g. `npm run warp-create-account`) to run it.
 
+You can find the testnet and mainnet warp controller contract address at [link](https://github.com/terra-money/warp-contracts/blob/master/refs.json).
+
+Enterprise contract address at [link](https://github.com/terra-money/enterprise-contracts/blob/main/refs.json).
+
+Astroport contract address at [link](https://github.com/astroport-fi/astroport-changelog/tree/main).
+
 ## available examples
 
 ### [authz](https://docs.terra.money/develop/module-specifications/spec-authz)
@@ -71,7 +77,7 @@ Create Warp job that acts as limit order or DCA.
   - swap from cw20 through router
 - DCA (Dollar-Cost Averaging)
   - swap 1 token to another recursively (e.g. swap 1 LUNA to ASTRO at market price everyday for 10 days)
-    - currently there is a limitation on DCA, after the last order is executed, we still create a job (because we cannot update `recurring` after we set it to `true` in initial job), but this job will be stuck at pending status forever as counter condition will never be satisfied. So we will keep paying eviction fee (0.01 LUNA everyday) for this dummy job. Warp team is working on adding a `terminate_fn` so we can update `recurring` to false at last run.
+    - currently there is a limitation on DCA, after the last order is executed, we still create a job (because we cannot update `recurring` after we set it to `true` in initial job), but this job will be stuck at pending status forever as counter condition will never be satisfied. So we will keep paying eviction fee (0.05 LUNA everyday) for this dummy job. Warp team is working on adding a `terminate_fn` so we can update `recurring` to false at last run.
 
 ### warp x enterprise
 

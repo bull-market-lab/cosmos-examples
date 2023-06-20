@@ -73,6 +73,7 @@ typings/
 .mainnet.env
 .testnet.env
 .localterra.env
+.testnet_neutron.env
 
 # parcel-bundler cache (https://parceljs.org/)
 .cache

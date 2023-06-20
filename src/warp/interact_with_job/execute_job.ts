@@ -32,5 +32,5 @@ const run = async (jobId?: string) => {
     });
 };
 
-// run('42');
-run();
+run("4");
+// run();

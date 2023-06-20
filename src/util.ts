@@ -38,11 +38,11 @@ export const getWalletOld = (lcd: LCDClientOld, mnemonicKey: MnemonicKeyOld): Wa
 };
 
 export const initWarpSdk = (lcd: LCDClientOld, wallet: WalletOld): WarpSdk => {
-  const contractAddress =
-    CHAIN_ID === CHAIN_ID_LOCALTERRA
-      ? WARP_CONTROLLER_ADDRESS!
-      : getContractAddress(getNetworkName(lcd.config.chainID), "warp-controller")!;
-  return new WarpSdk(wallet, contractAddress);
+  // const contractAddress =
+  //   CHAIN_ID === CHAIN_ID_LOCALTERRA
+  //     ? WARP_CONTROLLER_ADDRESS!
+  //     : getContractAddress(getNetworkName(lcd.config.chainID), "warp-controller")!;
+  return new WarpSdk(wallet, WARP_CONTROLLER_ADDRESS!);
 };
 
 export const getCurrentBlockHeight = async (lcd: LCDClientOld): Promise<string> => {
@@ -61,11 +61,11 @@ export const getLCD = (): LCDClient => {
   });
 };
 
-export const getMnemonicKey = (isTester2 = false): MnemonicKey => {
+export const getMnemonicKey = (isTester2 = false, isCoinType118 = false): MnemonicKey => {
   if (isTester2) {
-    return new MnemonicKey({ mnemonic: TESTER2_MNEMONIC_KEY });
+    return new MnemonicKey({ mnemonic: TESTER2_MNEMONIC_KEY, coinType: isCoinType118 ? 118 : 330 });
   } else {
-    return new MnemonicKey({ mnemonic: TESTER1_MNEMONIC_KEY });
+    return new MnemonicKey({ mnemonic: TESTER1_MNEMONIC_KEY, coinType: isCoinType118 ? 118 : 330 });
   }
 };
 
@@ -80,6 +80,11 @@ export const toBase64 = (obj: Object) => {
 // !!! stargate msg value is binary encoded unlike others that are json encoded
 export const toBase64FromBinary = (b: Uint8Array) => {
   return Buffer.from(b).toString("base64");
+};
+
+// used for encoding wasm contract
+export const toBase64FromBuffer = (b: Buffer) => {
+  return b.toString("base64");
 };
 
 export const getWarpAccountAddress = async (lcd: LCDClient, owner: string): Promise<string> => {

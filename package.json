@@ -19,7 +19,7 @@
   "dependencies": {
     "@skip-mev/skipjs": "^1.4.0",
     "@terra-money/feather.js": "^1.0.4",
-    "@terra-money/warp-sdk": "^0.1.21",
+    "@terra-money/warp-sdk": "^0.1.29",
     "@types/big.js": "^6.1.6"
   },
   "lint-staged": {
@@ -36,6 +36,7 @@
     "build": "yarn clean && tsc",
     "stake": "ts-node src/basic/stake.ts",
     "send": "ts-node src/basic/send.ts",
+    "store-wasm-code": "ts-node src/basic/store_wasm_code.ts",
     "authz-query-grants": "ts-node src/authz/query_grants.ts",
     "authz-query-granter": "ts-node src/authz/query_granter.ts",
     "authz-query-grantee": "ts-node src/authz/query_grantee.ts",
@@ -43,6 +44,8 @@
     "authz-execute-send-native-token": "ts-node src/authz/execute_send_native_token.ts",
     "authz-grant-generic-msg": "ts-node src/authz/grant_generic_msg.ts",
     "authz-execute-generic-msg": "ts-node src/authz/execute_generic_msg.ts",
+    "authz-grant-specific-contract-msg": "ts-node src/authz/grant_specific_contract_msg.ts",
+    "authz-execute-specific-contract-msg": "ts-node src/authz/execute_specific_contract_msg.ts",
     "authz-revoke-grant": "ts-node src/authz/revoke_grant.ts",
     "astroport-query-cw20-balance": "ts-node src/astroport/query_cw20_balance.ts",
     "astroport-provide-liquidity": "ts-node src/astroport/provide_liquidity.ts",

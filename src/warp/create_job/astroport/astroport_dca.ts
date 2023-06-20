@@ -27,7 +27,7 @@ const astroportAstroLunaPairAddress = ASTRO_LUNA_PAIR_ADDRESS!;
 
 const warpControllerAddress = WARP_CONTROLLER_ADDRESS!;
 
-const lunaAmount7 = (7_000_000).toString();
+// const lunaAmount7 = (1_000_000).toString();
 const lunaAmount1 = (1_000_000).toString();
 
 // when max_spread and minimum_receive are both specified, the swap will fail if receive amount is not in the range of [minimum_receive, return_amount * (1 +/- max_spread)]
@@ -38,13 +38,13 @@ const expectedReceivedAstroAmount = (9_091_852).toString();
 // maybe i don't need to specify spread in swap msg, as condition already ensure i get the price i want
 const maxSpread = "0.01";
 
-const lunaSwapAmount = lunaAmount7;
+const lunaSwapAmount = lunaAmount1;
 
 // run 5 times,
-const dcaNumber = (5).toString();
+const dcaNumber = (2).toString();
 
 // +1 to cover the first job
-const dcaNumberPlus1 = (6).toString();
+const dcaNumberPlus1 = (3).toString();
 
 // 86400 is 1 day in seconds
 // const dcaInterval = 60 * 60 * 24 * 7;
@@ -64,7 +64,7 @@ const run = async () => {
   // creation fee + reward + potential eviction fee
   const lunaJobFee = Big(lunaJobReward)
     .mul(Big(warpCreationFeePercentages).add(100).div(100))
-    .add(10_000) // eviction fee 0.01
+    .add(50_000) // eviction fee 0.05
     .mul(dcaNumberPlus1) // each recurring job needs to pay creation fee and reward
     .toString();
 
@@ -114,7 +114,7 @@ const run = async () => {
   };
   const nativeSwapJsonString = JSON.stringify(nativeSwap);
 
-  const jobVarNameNextExecution = "swap-luna-to-astro-recursively";
+  const jobVarNameNextExecution = "dca-swap-luna-to-astro";
   const jobVarNextExecution = {
     static: {
       kind: "uint", // NOTE: it's better to use uint instead of timestamp to keep it consistent with condition
@@ -206,6 +206,8 @@ const run = async () => {
   const createJob = new MsgExecuteContract(myAddress, warpControllerAddress, {
     create_job: {
       name: "astroport_dca_order_luna_to_astro_from_pool",
+      description: "DCA order from Luna to Astro from Astroport Astro-Luna pool",
+      labels: [],
       recurring: true,
       requeue_on_evict: true,
       reward: lunaJobReward,

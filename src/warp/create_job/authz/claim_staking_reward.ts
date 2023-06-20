@@ -120,6 +120,8 @@ const run = async () => {
   const createJob = new MsgExecuteContract(myAddress, warpControllerAddress, {
     create_job: {
       name: "authz_recurring_claim_staking_reward_via_authz",
+      description: "claim staking reward via authz",
+      labels: [],
       recurring: true,
       requeue_on_evict: false,
       reward: lunaJobReward,

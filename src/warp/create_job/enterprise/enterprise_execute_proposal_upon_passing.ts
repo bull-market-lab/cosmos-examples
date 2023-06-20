@@ -113,6 +113,8 @@ const run = async () => {
   const createJob = new MsgExecuteContract(myAddress, warpControllerAddress, {
     create_job: {
       name: "enterprise_execute_proposal_upon_passing",
+      description: "execute enterprise proposal upon passing",
+      labels: [],
       recurring: false,
       requeue_on_evict: false,
       reward: lunaJobReward,
