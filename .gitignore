@@ -114,3 +114,4 @@ build
 
 # misc
 .DS_Store
+.vs_code

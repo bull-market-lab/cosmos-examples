@@ -2,7 +2,6 @@ import Big from "big.js";
 import {
   MsgExecAuthorized,
   MsgExecuteContract,
-  MsgSend,
   MsgWithdrawDelegatorReward,
 } from "@terra-money/feather.js";
 import {
@@ -14,12 +13,7 @@ import {
   getWarpJobCreationFeePercentage,
   toBase64FromBinary,
 } from "../../../util";
-import {
-  CHAIN_PREFIX,
-  ENTERPRISE_DAO_ADDRESS,
-  VALIDATOR_ADDRESS,
-  WARP_CONTROLLER_ADDRESS,
-} from "../../../env";
+import { CHAIN_PREFIX, VALIDATOR_ADDRESS, WARP_CONTROLLER_ADDRESS } from "../../../env";
 
 const mnemonicKey = getMnemonicKey();
 const lcd = getLCD();
@@ -30,31 +24,31 @@ const myAddress = wallet.key.accAddress(CHAIN_PREFIX);
 
 const warpControllerAddress = WARP_CONTROLLER_ADDRESS!;
 
-const lunaAmount1 = (1_000_000).toString();
-
-// 86400 is 1 day in seconds
-// make it shorter for testing, 10 seconds
-const claimInterval = (10).toString();
-// initial value is current timestamp
-const claimStartTime = String(Math.floor(Date.now() / 1000));
-
 const run = async () => {
+  // 86400 is 1 day in seconds
+  // make it shorter for testing, 10 seconds
+  const claimInterval = (10).toString();
+  // initial value is current timestamp
+  const claimStartTime = String(Math.floor(Date.now() / 1000));
+
   const warpCreationFeePercentages = await getWarpJobCreationFeePercentage(lcd);
   const warpAccountAddress = await getWarpAccountAddress(lcd, myAddress);
 
-  const lunaJobReward = lunaAmount1;
+  const lunaJobReward = (1_000_000).toString();
   const lunaJobRewardAndCreationFee = Big(lunaJobReward)
     .mul(Big(warpCreationFeePercentages).add(100).div(100))
     .toString();
 
-  // TODO: warp currently doesn't support create account and fund it in 1 tx, but it's in feature branch
-  // const createWarpAccount = new MsgExecuteContract(myAddress, warpControllerAddress, {
-  //   create_account: {},
-  // });
-
-  const fundWarpAccountForJobRewardAndCreationFee = new MsgSend(myAddress, warpAccountAddress, {
-    uluna: lunaJobRewardAndCreationFee,
-  });
+  const createWarpAccountIfNotExistAndFundAccount = new MsgExecuteContract(
+    myAddress,
+    warpControllerAddress,
+    {
+      create_account: {},
+    },
+    {
+      uluna: lunaJobRewardAndCreationFee,
+    }
+  );
 
   // TODO: we may need to switch to amino manually? not sure if feather.js handles the conversion automatically
   // ledger wallet only works with amino encoding
@@ -131,7 +125,7 @@ const run = async () => {
     },
   });
 
-  createSignBroadcastCatch(wallet, [fundWarpAccountForJobRewardAndCreationFee, createJob]);
+  createSignBroadcastCatch(wallet, [createWarpAccountIfNotExistAndFundAccount, createJob]);
 };
 
 run();

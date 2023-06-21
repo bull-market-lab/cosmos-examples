@@ -2,8 +2,7 @@ import { Coins, MsgExecuteContract } from "@terra-money/feather.js";
 import { createSignBroadcastCatch, getLCD, getMnemonicKey, getWallet } from "../util";
 import { ASTRO_LUNA_PAIR_ADDRESS, ASTRO_TOKEN_ADDRESS, CHAIN_DENOM, CHAIN_PREFIX } from "../env";
 
-// i distributed initially balance to tester2
-const mnemonicKey = getMnemonicKey(2);
+const mnemonicKey = getMnemonicKey();
 const lcd = getLCD();
 const wallet = getWallet(lcd, mnemonicKey);
 // sender

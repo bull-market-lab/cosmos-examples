@@ -29,14 +29,16 @@ const authzExecute = async () => {
   const execAuthorizedMsg = new MsgExecAuthorized(grantee, [...withdrawDelegatorRewardMsg]);
 
   const executeMsg = {
-    msgs: [
-      {
-        stargate: {
-          type_url: "/cosmos.authz.v1beta1.MsgExec",
-          value: toBase64FromBinary(execAuthorizedMsg.packAny().value),
+    generic: {
+      msgs: [
+        {
+          stargate: {
+            type_url: "/cosmos.authz.v1beta1.MsgExec",
+            value: toBase64FromBinary(execAuthorizedMsg.packAny().value),
+          },
         },
-      },
-    ],
+      ],
+    },
   };
   const contractSend = new MsgExecuteContract(myAddress, warpAccountAddress, executeMsg);
 

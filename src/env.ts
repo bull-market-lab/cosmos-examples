@@ -15,10 +15,15 @@ export const TESTER1_MNEMONIC_KEY: string = env.TESTER1_MNEMONIC_KEY!;
 export const TESTER2_MNEMONIC_KEY: string = env.TESTER2_MNEMONIC_KEY!;
 export const TESTER3_MNEMONIC_KEY: string = env.TESTER3_MNEMONIC_KEY!;
 
+export const DEFAULT_TESTER_ID: number = parseInt(env.DEFAULT_TESTER_ID!);
+
+export const IS_COIN_TYPE_118: boolean = env.IS_COIN_TYPE_118! === "true";
+
 export const ENABLE_SKIP: boolean = env.ENABLE_SKIP === "true";
 export const SKIP_RPC_ENDPOINT: string | undefined = env.SKIP_RPC_ENDPOINT;
 
 export const WARP_CONTROLLER_ADDRESS: string | undefined = env.WARP_CONTROLLER_ADDRESS;
+export const WARP_RESOLVER_ADDRESS: string | undefined = env.WARP_RESOLVER_ADDRESS;
 
 export const ENTERPRISE_FACTORY_ADDRESS: string | undefined = env.ENTERPRISE_FACTORY_ADDRESS;
 export const ENTERPRISE_DAO_ADDRESS: string | undefined = env.ENTERPRISE_DAO_ADDRESS;

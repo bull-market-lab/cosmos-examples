@@ -1,11 +1,12 @@
+// NOTE: this job doesn't work now as whether an enterprise proposal is executable or not is evaluated on the fly
+// so we cannot use it in the condition
 import Big from "big.js";
-import { MsgExecuteContract, MsgSend } from "@terra-money/feather.js";
+import { MsgExecuteContract } from "@terra-money/feather.js";
 import {
   createSignBroadcastCatch,
   getLCD,
   getMnemonicKey,
   getWallet,
-  getWarpAccountAddress,
   getWarpJobCreationFeePercentage,
   toBase64,
 } from "../../../util";
@@ -22,29 +23,27 @@ const enterpriseDaoAddress = ENTERPRISE_DAO_ADDRESS!;
 
 const warpControllerAddress = WARP_CONTROLLER_ADDRESS!;
 
-// note: as of now enterprise id is number rather than string like warp job id
-// in general id is either in string number or number, try both if one doesn't work
-const proposalId = 1;
-
-const lunaAmount1 = (1_000_000).toString();
-
 const run = async () => {
-  const warpCreationFeePercentages = await getWarpJobCreationFeePercentage(lcd);
-  const warpAccountAddress = await getWarpAccountAddress(lcd, myAddress);
+  // note: as of now enterprise id is number rather than string like warp job id
+  // in general id is either in string number or number, try both if one doesn't work
+  const proposalId = 1;
 
-  const lunaJobReward = lunaAmount1;
+  const lunaJobReward = (1_000_000).toString();
+  const warpCreationFeePercentages = await getWarpJobCreationFeePercentage(lcd);
   const lunaJobRewardAndCreationFee = Big(lunaJobReward)
     .mul(Big(warpCreationFeePercentages).add(100).div(100))
     .toString();
 
-  // TODO: warp currently doesn't support create account and fund it in 1 tx, but it's in feature branch
-  // const createWarpAccount = new MsgExecuteContract(myAddress, warpControllerAddress, {
-  //   create_account: {},
-  // });
-
-  const fundWarpAccountForJobRewardAndCreationFee = new MsgSend(myAddress, warpAccountAddress, {
-    uluna: lunaJobRewardAndCreationFee,
-  });
+  const createWarpAccountIfNotExistAndFundAccount = new MsgExecuteContract(
+    myAddress,
+    warpControllerAddress,
+    {
+      create_account: {},
+    },
+    {
+      uluna: lunaJobRewardAndCreationFee,
+    }
+  );
 
   const executeProposalMsg = {
     execute_proposal: {
@@ -124,7 +123,7 @@ const run = async () => {
     },
   });
 
-  createSignBroadcastCatch(wallet, [fundWarpAccountForJobRewardAndCreationFee, createJob]);
+  createSignBroadcastCatch(wallet, [createWarpAccountIfNotExistAndFundAccount, createJob]);
 };
 
 run();

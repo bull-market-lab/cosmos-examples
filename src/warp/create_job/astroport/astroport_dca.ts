@@ -26,44 +26,33 @@ const astroportAstroLunaPairAddress = ASTRO_LUNA_PAIR_ADDRESS!;
 
 const warpControllerAddress = WARP_CONTROLLER_ADDRESS!;
 
-// const lunaAmount7 = (1_000_000).toString();
-const lunaAmount1 = (1_000_000).toString();
-
-// when max_spread and minimum_receive are both specified, the swap will fail if receive amount is not in the range of [minimum_receive, return_amount * (1 +/- max_spread)]
-// actually i think i only need to specify minimum_receive in condition
-// expectedReceivedAstroAmount is not required for actual swap msg cause checking condition is atomic with executing swap msg
-const expectedReceivedAstroAmount = (9_091_852).toString();
-// default spread is 0.01 which is 1%
-// maybe i don't need to specify spread in swap msg, as condition already ensure i get the price i want
-const maxSpread = "0.01";
-
-const lunaSwapAmount = lunaAmount1;
-
-// run 5 times,
-const dcaNumber = (2).toString();
-
-// +1 to cover the first job
-const dcaNumberPlus1 = (3).toString();
-
-// 86400 is 1 day in seconds
-// const dcaInterval = 60 * 60 * 24 * 7;
-// make it shorter for testing, 30 seconds
-const dcaInterval = (30).toString();
-// initial value is current timestamp
-const dcaStartTime = String(Math.floor(Date.now() / 1000));
-
-// round down to 3 decimal places to avoid running out of fund
-const singleSwapAmount = Big(lunaSwapAmount).div(dcaNumber).round(3, 0).toString();
-
 const run = async () => {
-  const warpCreationFeePercentages = await getWarpJobCreationFeePercentage(lcd);
+  // default spread is 0.01 which is 1%
+  // maybe i don't need to specify spread in swap msg, as condition already ensure i get the price i want
+  const maxSpread = "0.01";
 
-  const lunaJobReward = lunaAmount1;
+  const lunaSwapAmount = (1_000_000).toString();
+
+  const dcaNumber = (2).toString();
+  const dcaNumberPlus1 = (parseInt(dcaNumber) + 1).toString();
+
+  // 86400 is 1 day in seconds
+  // const dcaInterval = 60 * 60 * 24 * 7;
+  // make it shorter for testing, 30 seconds
+  const dcaInterval = (30).toString();
+  // initial value is current timestamp
+  const dcaStartTime = String(Math.floor(Date.now() / 1000));
+
+  // round down to 3 decimal places to avoid running out of fund
+  const singleSwapAmount = Big(lunaSwapAmount).div(dcaNumber).round(3, 0).toString();
+
+  const lunaJobReward = (1_000_000).toString();
   // creation fee + reward + potential eviction fee
+  const warpCreationFeePercentages = await getWarpJobCreationFeePercentage(lcd);
   const lunaJobFee = Big(lunaJobReward)
     .mul(Big(warpCreationFeePercentages).add(100).div(100))
     .add(50_000) // eviction fee 0.05
-    .mul(dcaNumberPlus1) // each recurring job needs to pay creation fee and reward
+    .mul(dcaNumberPlus1) // each recurring job needs to pay creation fee and reward, plus 1 to cover the dummy job that created after last execution, TODO: remove it after warp supports terminate_fn
     .toString();
 
   const createWarpAccountIfNotExistAndFundAccount = new MsgExecuteContract(

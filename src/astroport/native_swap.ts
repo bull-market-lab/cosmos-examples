@@ -13,7 +13,7 @@ const astroLunaPairAddress = ASTRO_LUNA_PAIR_ADDRESS!;
 const astroTokenAddress = ASTRO_TOKEN_ADDRESS!;
 
 const astroAmount100 = (100_000_000).toString();
-const lunaAmount10 = (10_000_000).toString();
+const lunaAmount10 = (1_000_000).toString();
 
 const run = async () => {
   const swap = new MsgExecuteContract(

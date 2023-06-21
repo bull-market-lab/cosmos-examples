@@ -6,18 +6,20 @@ import {
 } from "@terra-money/terra.js";
 import { LCDClient, MnemonicKey, Msg, Wallet } from "@terra-money/feather.js";
 
-import { getContractAddress, getNetworkName, WarpSdk } from "@terra-money/warp-sdk";
+import { WarpSdk } from "@terra-money/warp-sdk";
 import {
   CHAIN_DENOM,
   CHAIN_ID,
   CHAIN_PREFIX,
+  IS_COIN_TYPE_118,
   LCD_ENDPOINT,
   TESTER1_MNEMONIC_KEY,
   TESTER2_MNEMONIC_KEY,
   TESTER3_MNEMONIC_KEY,
+  DEFAULT_TESTER_ID,
   WARP_CONTROLLER_ADDRESS,
+  WARP_RESOLVER_ADDRESS,
 } from "./env";
-import { CHAIN_ID_LOCALTERRA } from "./constant";
 
 export const getLCDOld = (): LCDClientOld => {
   return new LCDClientOld({
@@ -26,27 +28,27 @@ export const getLCDOld = (): LCDClientOld => {
   });
 };
 
-export const getMnemonicKeyOld = (testerId = 1, isCoinType118 = false): MnemonicKeyOld => {
+export const getMnemonicKeyOld = (testerId = DEFAULT_TESTER_ID): MnemonicKeyOld => {
   switch (testerId) {
     case 1:
       return new MnemonicKeyOld({
         mnemonic: TESTER1_MNEMONIC_KEY,
-        coinType: isCoinType118 ? 118 : 330,
+        coinType: IS_COIN_TYPE_118 ? 118 : 330,
       });
     case 2:
       return new MnemonicKeyOld({
         mnemonic: TESTER2_MNEMONIC_KEY,
-        coinType: isCoinType118 ? 118 : 330,
+        coinType: IS_COIN_TYPE_118 ? 118 : 330,
       });
     case 3:
       return new MnemonicKeyOld({
         mnemonic: TESTER3_MNEMONIC_KEY,
-        coinType: isCoinType118 ? 118 : 330,
+        coinType: IS_COIN_TYPE_118 ? 118 : 330,
       });
     default:
       return new MnemonicKeyOld({
         mnemonic: TESTER1_MNEMONIC_KEY,
-        coinType: isCoinType118 ? 118 : 330,
+        coinType: IS_COIN_TYPE_118 ? 118 : 330,
       });
   }
 };
@@ -60,7 +62,7 @@ export const initWarpSdk = (lcd: LCDClientOld, wallet: WalletOld): WarpSdk => {
   //   CHAIN_ID === CHAIN_ID_LOCALTERRA
   //     ? WARP_CONTROLLER_ADDRESS!
   //     : getContractAddress(getNetworkName(lcd.config.chainID), "warp-controller")!;
-  return new WarpSdk(wallet, WARP_CONTROLLER_ADDRESS!);
+  return new WarpSdk(wallet, WARP_CONTROLLER_ADDRESS!, WARP_RESOLVER_ADDRESS!);
 };
 
 export const getCurrentBlockHeight = async (lcd: LCDClientOld): Promise<string> => {
@@ -79,27 +81,27 @@ export const getLCD = (): LCDClient => {
   });
 };
 
-export const getMnemonicKey = (testerId = 1, isCoinType118 = false): MnemonicKey => {
+export const getMnemonicKey = (testerId = DEFAULT_TESTER_ID): MnemonicKey => {
   switch (testerId) {
     case 1:
       return new MnemonicKey({
         mnemonic: TESTER1_MNEMONIC_KEY,
-        coinType: isCoinType118 ? 118 : 330,
+        coinType: IS_COIN_TYPE_118 ? 118 : 330,
       });
     case 2:
       return new MnemonicKey({
         mnemonic: TESTER2_MNEMONIC_KEY,
-        coinType: isCoinType118 ? 118 : 330,
+        coinType: IS_COIN_TYPE_118 ? 118 : 330,
       });
     case 3:
       return new MnemonicKey({
         mnemonic: TESTER3_MNEMONIC_KEY,
-        coinType: isCoinType118 ? 118 : 330,
+        coinType: IS_COIN_TYPE_118 ? 118 : 330,
       });
     default:
       return new MnemonicKey({
         mnemonic: TESTER1_MNEMONIC_KEY,
-        coinType: isCoinType118 ? 118 : 330,
+        coinType: IS_COIN_TYPE_118 ? 118 : 330,
       });
   }
 };

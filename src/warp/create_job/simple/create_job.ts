@@ -14,7 +14,7 @@ function executeMsg<T extends {}>(sender: string, contract: string, msg: T, coin
   return new MsgExecuteContract(sender, contract, msg, coins);
 }
 
-const mnemonicKey = getMnemonicKeyOld(true);
+const mnemonicKey = getMnemonicKeyOld();
 const lcd = getLCDOld();
 const wallet = getWalletOld(lcd, mnemonicKey);
 const warpSdk = initWarpSdk(lcd, wallet);
@@ -65,6 +65,8 @@ const run = async () => {
   const createJobMsgConditionAlwaysTrue: warp_controller.CreateJobMsg = {
     condition: conditionAlwaysTrue,
     name: "test_job_condition_always_true",
+    description: "test_job_condition_always_true",
+    labels: [],
     recurring: false,
     requeue_on_evict: false,
     vars: [],
@@ -75,6 +77,8 @@ const run = async () => {
   const createJobMsgConditionAlwaysFalse: warp_controller.CreateJobMsg = {
     condition: conditionAlwaysFalse,
     name: "test_job_condition_always_false",
+    description: "test_job_condition_always_false",
+    labels: [],
     recurring: false,
     requeue_on_evict: false,
     vars: [],
@@ -82,9 +86,11 @@ const run = async () => {
     msgs: [JSON.stringify(msg)],
   };
 
-  const createJobMsgConditionDelay5BlocksTrue = {
+  const createJobMsgConditionDelay5BlocksTrue: warp_controller.CreateJobMsg = {
     condition: conditionDelay5BlocksTrue,
     name: "test_delay",
+    description: "test_delay",
+    labels: [],
     recurring: false,
     requeue_on_evict: false,
     vars: [],
@@ -95,6 +101,8 @@ const run = async () => {
   const createJobMsgConditionAlwaysTrueRequeueOnEvict: warp_controller.CreateJobMsg = {
     condition: conditionAlwaysTrue,
     name: "test_job_condition_always_true_requeue_on_evict_job",
+    description: "test_job_condition_always_true_requeue_on_evict_job",
+    labels: [],
     recurring: false,
     requeue_on_evict: true,
     vars: [],
@@ -105,6 +113,8 @@ const run = async () => {
   const createJobMsgConditionAlwaysFalseRequeueOnEvict: warp_controller.CreateJobMsg = {
     condition: conditionAlwaysFalse,
     name: "test_job_condition_always_false_requeue_on_evict_job",
+    description: "test_job_condition_always_false_requeue_on_evict_job",
+    labels: [],
     recurring: false,
     requeue_on_evict: true,
     vars: [],
@@ -115,6 +125,8 @@ const run = async () => {
   const createJobMsgConditionAlwaysTrueRecurring: warp_controller.CreateJobMsg = {
     condition: conditionAlwaysTrue,
     name: "test_job_condition_always_true_recurring",
+    description: "test_job_condition_always_true_recurring",
+    labels: [],
     recurring: true,
     requeue_on_evict: false,
     vars: [],
@@ -126,6 +138,8 @@ const run = async () => {
   const createJobMsgConditionAlwaysFalseRecurring: warp_controller.CreateJobMsg = {
     condition: conditionAlwaysFalse,
     name: "test_job_condition_always_false_recurring",
+    description: "test_job_condition_always_false_recurring",
+    labels: [],
     recurring: true,
     requeue_on_evict: false,
     vars: [],
@@ -136,6 +150,8 @@ const run = async () => {
   const createJobMsgConditionAlwaysTrueRequeueAndRecurring: warp_controller.CreateJobMsg = {
     condition: conditionAlwaysTrue,
     name: "test_job_condition_always_true_requeue_and_recurring",
+    description: "test_job_condition_always_true_requeue_and_recurring",
+    labels: [],
     recurring: true,
     requeue_on_evict: true,
     vars: [],
@@ -146,6 +162,8 @@ const run = async () => {
   const createJobMsgConditionAlwaysFalseRequeueAndRecurring: warp_controller.CreateJobMsg = {
     condition: conditionAlwaysFalse,
     name: "test_job_condition_always_false_requeue_and_recurring",
+    description: "test_job_condition_always_false_requeue_and_recurring",
+    labels: [],
     recurring: true,
     requeue_on_evict: true,
     vars: [],
@@ -167,7 +185,7 @@ const run = async () => {
   ].map((msg) =>
     executeMsg<Extract<warp_controller.ExecuteMsg, { create_job: warp_controller.CreateJobMsg }>>(
       owner,
-      warpSdk.contractAddress,
+      warpSdk.controllerContract,
       {
         create_job: msg,
       }

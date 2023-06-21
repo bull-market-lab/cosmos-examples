@@ -6,7 +6,7 @@ import {
   printAxiosError,
 } from "../../util";
 
-const mnemonicKey = getMnemonicKeyOld(true);
+const mnemonicKey = getMnemonicKeyOld(1);
 const lcd = getLCDOld();
 const wallet = getWalletOld(lcd, mnemonicKey);
 const warpSdk = initWarpSdk(lcd, wallet);
@@ -32,5 +32,5 @@ const run = async (jobId?: string) => {
     });
 };
 
-run("4");
-// run();
+// run("11");
+run();

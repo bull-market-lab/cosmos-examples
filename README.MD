@@ -2,10 +2,6 @@
 
 List of examples interacting with Cosmos SDK native modules (e.g. send native token) and CosmWasm contracts using [feather.js](https://github.com/terra-money/feather.js).
 
-## warning
-
-Some scripts might be broken due to some contract upgrade contains breaking change, but it should be easy to fix in most cases.
-
 ## guide
 
 First run `npm i` to install the dependency.

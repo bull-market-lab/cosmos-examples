@@ -1,11 +1,10 @@
 import Big from "big.js";
-import { MsgExecuteContract, MsgSend } from "@terra-money/feather.js";
+import { MsgExecuteContract } from "@terra-money/feather.js";
 import {
   createSignBroadcastCatch,
   getLCD,
   getMnemonicKey,
   getWallet,
-  getWarpAccountAddress,
   getWarpJobCreationFeePercentage,
   toBase64,
 } from "../../../util";
@@ -32,43 +31,56 @@ const astroTokenAddress = ASTRO_TOKEN_ADDRESS!;
 
 const warpControllerAddress = WARP_CONTROLLER_ADDRESS!;
 
-const lunaAmount1 = (1_000_000).toString();
-
-const astroAmount10 = (10_000_000).toString();
-
-// when max_spread and minimum_receive are both specified, the swap will fail if receive amount is not in the range of [minimum_receive, return_amount * (1 +/- max_spread)]
-// actually i think i only need to specify minimum_receive in condition
-// no need for actual swap msg cause checking condition is atomic with executing swap msg
-const expectedReceivedLunaAmount = (9_010_335).toString();
-// default spread is 0.01 which is 1%
-// maybe i don't need to specify spread in swap msg, as condition already ensure i get the price i want
-const maxSpread = "0.1";
-
 const run = async () => {
+  // when max_spread and minimum_receive are both specified, the swap will fail if receive amount is not in the range of [minimum_receive, return_amount * (1 +/- max_spread)]
+  // actually i think i only need to specify minimum_receive in condition
+  // no need for actual swap msg cause checking condition is atomic with executing swap msg
+  const expectedReceivedLunaAmount = (9_010_335).toString();
+  // default spread is 0.01 which is 1%
+  // maybe i don't need to specify spread in swap msg, as condition already ensure i get the price i want
+  const maxSpread = "0.1";
+
+  const astroSwapAmount = (10_000_000).toString();
+
+  const lunaJobReward = (1_000_000).toString();
   const warpCreationFeePercentages = await getWarpJobCreationFeePercentage(lcd);
-  const warpAccountAddress = await getWarpAccountAddress(lcd, myAddress);
-
-  const astroSwapAmount = astroAmount10;
-
-  const lunaJobReward = lunaAmount1;
   const lunaJobRewardAndCreationFee = Big(lunaJobReward)
     .mul(Big(warpCreationFeePercentages).add(100).div(100))
     .toString();
 
-  // TODO: warp currently doesn't support create account and fund it in 1 tx, but it's in feature branch
-  // const createWarpAccount = new MsgExecuteContract(myAddress, warpControllerAddress, {
-  //   create_account: {},
-  // });
-
-  const fundWarpAccountForJobRewardAndCreationFee = new MsgSend(myAddress, warpAccountAddress, {
-    uluna: lunaJobRewardAndCreationFee,
-  });
-  const fundWarpAccountForOfferedAmount = new MsgExecuteContract(myAddress, astroTokenAddress, {
-    transfer: {
-      recipient: warpAccountAddress,
+  // we need to increase allowance first
+  // because warp controller will transfer the fund on behalf of the us to our warp account
+  const increaseAllowance = new MsgExecuteContract(myAddress, astroTokenAddress, {
+    increase_allowance: {
+      spender: warpControllerAddress,
       amount: astroSwapAmount,
+      expires: {
+        never: {},
+      },
     },
   });
+
+  const createWarpAccountIfNotExistAndFundAccount = new MsgExecuteContract(
+    myAddress,
+    warpControllerAddress,
+    {
+      create_account: {
+        // cw fund to be swapped
+        funds: [
+          {
+            cw20: {
+              contract_addr: astroTokenAddress,
+              amount: astroSwapAmount,
+            },
+          },
+        ],
+      },
+    },
+    // native token fund to pay for creation fee
+    {
+      uluna: lunaJobRewardAndCreationFee,
+    }
+  );
 
   const astroportCw20SwapHookMsg = {
     execute_swap_operations: {
@@ -183,8 +195,8 @@ const run = async () => {
   });
 
   createSignBroadcastCatch(wallet, [
-    fundWarpAccountForJobRewardAndCreationFee,
-    fundWarpAccountForOfferedAmount,
+    increaseAllowance,
+    createWarpAccountIfNotExistAndFundAccount,
     createJob,
   ]);
 };

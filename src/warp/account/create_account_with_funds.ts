@@ -6,27 +6,29 @@ import {
   initWarpSdk,
   printAxiosError,
 } from "../../util";
+import { ASTRO_TOKEN_ADDRESS } from "../../env";
 
 const mnemonicKey = getMnemonicKeyOld();
 const lcd = getLCDOld();
 const wallet = getWalletOld(lcd, mnemonicKey);
 const warpSdk = initWarpSdk(lcd, wallet);
-const owner = wallet.key.accAddress;
 
-const updateMsg: warp_controller.UpdateJobMsg = {
-  // min reward is 20 uluna (0.0002) luna to prevent job evicted
-  // still lower than 0.05 luna eviction fee
-  // 20 because creation fee is 5%, creation fee > 0 will satisfy the contract
-  added_reward: "19",
-  id: "5",
-};
+const astroAmount1 = (1_000_000).toString();
+const astroTokenAddress = ASTRO_TOKEN_ADDRESS!;
 
-const run = async () => {
+const createAccountWithFunds = async () => {
+  const funds: warp_controller.Fund[] = [
+    {
+      cw20: {
+        amount: astroAmount1.toString(),
+        contract_addr: astroTokenAddress,
+      },
+    },
+  ];
   warpSdk
-    .updateJob(owner, updateMsg)
+    .createAccount(wallet.key.accAddress, funds)
     .then((txInfo) => {
       console.log(txInfo);
-      console.log("updated job with more reward");
     })
     .catch((e) => {
       printAxiosError(e);
@@ -34,4 +36,4 @@ const run = async () => {
     });
 };
 
-run();
+createAccountWithFunds();

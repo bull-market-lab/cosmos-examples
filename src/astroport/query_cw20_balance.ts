@@ -1,8 +1,7 @@
 import { ASTRO_TOKEN_ADDRESS, CHAIN_PREFIX } from "../env";
 import { getLCD, getMnemonicKey, getWallet } from "../util";
 
-// i distributed initially balance to tester2
-const mnemonicKey = getMnemonicKey(2);
+const mnemonicKey = getMnemonicKey();
 const lcd = getLCD();
 const wallet = getWallet(lcd, mnemonicKey);
 // sender

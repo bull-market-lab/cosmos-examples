@@ -11,7 +11,7 @@ import { CHAIN_PREFIX } from "../env";
 
 const lcd = getLCD();
 
-const mnemonicKey1 = getMnemonicKey(false, true);
+const mnemonicKey1 = getMnemonicKey();
 const wallet1 = getWallet(lcd, mnemonicKey1);
 const myAddress1 = wallet1.key.accAddress(CHAIN_PREFIX);
 

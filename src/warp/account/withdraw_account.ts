@@ -8,13 +8,14 @@ import {
 } from "../../util";
 import { ASTRO_TOKEN_ADDRESS } from "../../env";
 
-const mnemonicKey = getMnemonicKeyOld();
+const mnemonicKey = getMnemonicKeyOld(3);
 const lcd = getLCDOld();
 const wallet = getWalletOld(lcd, mnemonicKey);
 const warpSdk = initWarpSdk(lcd, wallet);
 
-const amount = 10_003_700000;
+const nativeAmount = 1_900_000;
 const nativeToken = LUNA;
+const cw20Amount = 20_000_000;
 const astro: CW20Token = {
   key: "astro",
   name: "Astro",
@@ -28,13 +29,13 @@ const astro: CW20Token = {
 
 const run = async () => {
   warpSdk
-    .withdrawFromAccount(
-      wallet.key.accAddress,
-      wallet.key.accAddress,
-      nativeToken,
-      amount.toString()
-    )
-    // .withdrawFromAccount(wallet.key.accAddress, wallet.key.accAddress, astro, amount.toString())
+    // .withdrawFromAccount(
+    //   wallet.key.accAddress,
+    //   wallet.key.accAddress,
+    //   nativeToken,
+    //   nativeAmount.toString()
+    // )
+    .withdrawFromAccount(wallet.key.accAddress, wallet.key.accAddress, astro, cw20Amount.toString())
     .then((txInfo) => {
       console.log(txInfo);
     })

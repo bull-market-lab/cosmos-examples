@@ -19,7 +19,7 @@
   "dependencies": {
     "@skip-mev/skipjs": "^1.4.0",
     "@terra-money/feather.js": "^1.0.4",
-    "@terra-money/warp-sdk": "^0.1.29",
+    "@terra-money/warp-sdk": "^0.1.30",
     "@types/big.js": "^6.1.6"
   },
   "lint-staged": {
@@ -31,9 +31,6 @@
     "postinstall": "husky install",
     "format": "prettier --write .",
     "format-check": "prettier --ignore-path .gitignore --check .",
-    "lint": "yarn format-check && eslint . && yarn build",
-    "clean": "yarn tsc --build --clean && rm -rf build",
-    "build": "yarn clean && tsc",
     "stake": "ts-node src/basic/stake.ts",
     "send": "ts-node src/basic/send.ts",
     "store-wasm-code": "ts-node src/basic/store_wasm_code.ts",
@@ -59,6 +56,7 @@
     "enterprise-query-proposal-status": "ts-node src/enterprise/query_proposal_status.ts",
     "enterprise-execute-proposal": "ts-node src/enterprise/execute_proposal.ts",
     "warp-create-account": "ts-node src/warp/account/create_account.ts",
+    "warp-create-account-with-funds": "ts-node src/warp/account/create_account_with_funds.ts",
     "warp-deposit-account": "ts-node src/warp/account/deposit_account.ts",
     "warp-withdraw-account": "ts-node src/warp/account/withdraw_account.ts",
     "warp-withdraw-account-without-sdk": "ts-node src/warp/account/withdraw_account_without_sdk.ts",
