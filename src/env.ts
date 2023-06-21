@@ -13,6 +13,7 @@ export const VALIDATOR_ADDRESS: string = env.VALIDATOR_ADDRESS!;
 
 export const TESTER1_MNEMONIC_KEY: string = env.TESTER1_MNEMONIC_KEY!;
 export const TESTER2_MNEMONIC_KEY: string = env.TESTER2_MNEMONIC_KEY!;
+export const TESTER3_MNEMONIC_KEY: string = env.TESTER3_MNEMONIC_KEY!;
 
 export const ENABLE_SKIP: boolean = env.ENABLE_SKIP === "true";
 export const SKIP_RPC_ENDPOINT: string | undefined = env.SKIP_RPC_ENDPOINT;

@@ -3,7 +3,7 @@ import { createSignBroadcastCatch, getLCD, getMnemonicKey, getWallet } from "../
 import { ASTRO_LUNA_PAIR_ADDRESS, ASTRO_TOKEN_ADDRESS, CHAIN_DENOM, CHAIN_PREFIX } from "../env";
 
 // i distributed initially balance to tester2
-const mnemonicKey = getMnemonicKey(true);
+const mnemonicKey = getMnemonicKey(2);
 const lcd = getLCD();
 const wallet = getWallet(lcd, mnemonicKey);
 // sender

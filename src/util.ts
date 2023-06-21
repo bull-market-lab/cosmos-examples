@@ -14,6 +14,7 @@ import {
   LCD_ENDPOINT,
   TESTER1_MNEMONIC_KEY,
   TESTER2_MNEMONIC_KEY,
+  TESTER3_MNEMONIC_KEY,
   WARP_CONTROLLER_ADDRESS,
 } from "./env";
 import { CHAIN_ID_LOCALTERRA } from "./constant";
@@ -25,11 +26,28 @@ export const getLCDOld = (): LCDClientOld => {
   });
 };
 
-export const getMnemonicKeyOld = (isTester2 = false): MnemonicKeyOld => {
-  if (isTester2) {
-    return new MnemonicKeyOld({ mnemonic: TESTER2_MNEMONIC_KEY });
-  } else {
-    return new MnemonicKeyOld({ mnemonic: TESTER1_MNEMONIC_KEY });
+export const getMnemonicKeyOld = (testerId = 1, isCoinType118 = false): MnemonicKeyOld => {
+  switch (testerId) {
+    case 1:
+      return new MnemonicKeyOld({
+        mnemonic: TESTER1_MNEMONIC_KEY,
+        coinType: isCoinType118 ? 118 : 330,
+      });
+    case 2:
+      return new MnemonicKeyOld({
+        mnemonic: TESTER2_MNEMONIC_KEY,
+        coinType: isCoinType118 ? 118 : 330,
+      });
+    case 3:
+      return new MnemonicKeyOld({
+        mnemonic: TESTER3_MNEMONIC_KEY,
+        coinType: isCoinType118 ? 118 : 330,
+      });
+    default:
+      return new MnemonicKeyOld({
+        mnemonic: TESTER1_MNEMONIC_KEY,
+        coinType: isCoinType118 ? 118 : 330,
+      });
   }
 };
 
@@ -61,11 +79,28 @@ export const getLCD = (): LCDClient => {
   });
 };
 
-export const getMnemonicKey = (isTester2 = false, isCoinType118 = false): MnemonicKey => {
-  if (isTester2) {
-    return new MnemonicKey({ mnemonic: TESTER2_MNEMONIC_KEY, coinType: isCoinType118 ? 118 : 330 });
-  } else {
-    return new MnemonicKey({ mnemonic: TESTER1_MNEMONIC_KEY, coinType: isCoinType118 ? 118 : 330 });
+export const getMnemonicKey = (testerId = 1, isCoinType118 = false): MnemonicKey => {
+  switch (testerId) {
+    case 1:
+      return new MnemonicKey({
+        mnemonic: TESTER1_MNEMONIC_KEY,
+        coinType: isCoinType118 ? 118 : 330,
+      });
+    case 2:
+      return new MnemonicKey({
+        mnemonic: TESTER2_MNEMONIC_KEY,
+        coinType: isCoinType118 ? 118 : 330,
+      });
+    case 3:
+      return new MnemonicKey({
+        mnemonic: TESTER3_MNEMONIC_KEY,
+        coinType: isCoinType118 ? 118 : 330,
+      });
+    default:
+      return new MnemonicKey({
+        mnemonic: TESTER1_MNEMONIC_KEY,
+        coinType: isCoinType118 ? 118 : 330,
+      });
   }
 };
 
@@ -130,15 +165,22 @@ export const printAxiosError = (e: any) => {
   }
 };
 
-export const createSignBroadcastCatch = async (wallet: Wallet, msgs: Msg[]) => {
+export const createSignBroadcastCatch = async (
+  wallet: Wallet,
+  msgs: Msg[],
+  autoEstimateFee = true
+) => {
+  const txOptions = {
+    msgs: msgs,
+    chainID: CHAIN_ID,
+  };
+  if (!autoEstimateFee) {
+    txOptions["gasPrices"] = "0.15uluna";
+    txOptions["gasAdjustment"] = 1.4;
+    txOptions["gas"] = (1_500_000).toString();
+  }
   wallet
-    .createAndSignTx({
-      msgs: msgs,
-      chainID: CHAIN_ID,
-      //   gasPrices: '0.15uluna',
-      //   gasAdjustment: 1.4,
-      //   gas: (1_500_793).toString(),
-    })
+    .createAndSignTx(txOptions)
     .then((tx) => wallet.lcd.tx.broadcast(tx, CHAIN_ID))
     .catch((e) => {
       console.log("error in create and sign tx");

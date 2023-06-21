@@ -1,11 +1,10 @@
 import Big from "big.js";
-import { MsgExecuteContract, MsgSend } from "@terra-money/feather.js";
+import { MsgExecuteContract } from "@terra-money/feather.js";
 import {
   createSignBroadcastCatch,
   getLCD,
   getMnemonicKey,
   getWallet,
-  getWarpAccountAddress,
   getWarpJobCreationFeePercentage,
   toBase64,
 } from "../../../util";
@@ -17,7 +16,7 @@ import {
   WARP_CONTROLLER_ADDRESS,
 } from "../../../env";
 
-const mnemonicKey = getMnemonicKey();
+const mnemonicKey = getMnemonicKey(3);
 const lcd = getLCD();
 const wallet = getWallet(lcd, mnemonicKey);
 
@@ -43,7 +42,6 @@ const maxSpread = "0.1";
 
 const run = async () => {
   const warpCreationFeePercentages = await getWarpJobCreationFeePercentage(lcd);
-  const warpAccountAddress = await getWarpAccountAddress(lcd, myAddress);
 
   const astroSwapAmount = astroAmount10;
 
@@ -52,20 +50,27 @@ const run = async () => {
     .mul(Big(warpCreationFeePercentages).add(100).div(100))
     .toString();
 
-  // TODO: warp currently doesn't support create account and fund it in 1 tx, but it's in feature branch
-  // const createWarpAccount = new MsgExecuteContract(myAddress, warpControllerAddress, {
-  //   create_account: {},
-  // });
-
-  const fundWarpAccountForJobRewardAndCreationFee = new MsgSend(myAddress, warpAccountAddress, {
-    uluna: lunaJobRewardAndCreationFee,
-  });
-  const fundWarpAccountForOfferedAmount = new MsgExecuteContract(myAddress, astroTokenAddress, {
-    transfer: {
-      recipient: warpAccountAddress,
-      amount: astroSwapAmount,
+  const createWarpAccountIfNotExistAndFundAccount = new MsgExecuteContract(
+    myAddress,
+    warpControllerAddress,
+    {
+      create_account: {
+        // cw fund to be swapped
+        funds: [
+          {
+            cw20: {
+              contract_addr: astroTokenAddress,
+              amount: astroSwapAmount,
+            },
+          },
+        ],
+      },
     },
-  });
+    // native token fund to pay for creation fee
+    {
+      uluna: lunaJobRewardAndCreationFee,
+    }
+  );
 
   const astroportCw20SwapHookMsg = {
     swap: {
@@ -161,8 +166,9 @@ const run = async () => {
   });
 
   createSignBroadcastCatch(wallet, [
-    fundWarpAccountForJobRewardAndCreationFee,
-    fundWarpAccountForOfferedAmount,
+    // fundWarpAccountForJobRewardAndCreationFee,
+    // fundWarpAccountForOfferedAmount,
+    createWarpAccountIfNotExistAndFundAccount,
     createJob,
   ]);
 };

@@ -1,11 +1,10 @@
 import Big from "big.js";
-import { MsgExecuteContract, MsgSend } from "@terra-money/feather.js";
+import { MsgExecuteContract } from "@terra-money/feather.js";
 import {
   createSignBroadcastCatch,
   getLCD,
   getMnemonicKey,
   getWallet,
-  getWarpAccountAddress,
   getWarpJobCreationFeePercentage,
   toBase64,
 } from "../../../util";
@@ -40,25 +39,23 @@ const maxSpread = "0.1";
 
 const run = async () => {
   const warpCreationFeePercentages = await getWarpJobCreationFeePercentage(lcd);
-  const warpAccountAddress = await getWarpAccountAddress(lcd, myAddress);
 
-  const lunaSwapAmount = lunaAmount10;
+  const lunaSwapAmount = lunaAmount1;
   const lunaJobReward = lunaAmount1;
   const lunaJobRewardAndCreationFee = Big(lunaJobReward)
     .mul(Big(warpCreationFeePercentages).add(100).div(100))
     .toString();
 
-  // TODO: warp currently doesn't support create account and fund it in 1 tx, but it's in feature branch
-  // const createWarpAccount = new MsgExecuteContract(myAddress, warpControllerAddress, {
-  //   create_account: {},
-  // });
-
-  const fundWarpAccountForJobRewardAndCreationFee = new MsgSend(myAddress, warpAccountAddress, {
-    uluna: lunaJobRewardAndCreationFee,
-  });
-  const fundWarpAccountForOfferedAmount = new MsgSend(myAddress, warpAccountAddress, {
-    uluna: lunaSwapAmount,
-  });
+  const createWarpAccountIfNotExistAndFundAccount = new MsgExecuteContract(
+    myAddress,
+    warpControllerAddress,
+    {
+      create_account: {},
+    },
+    {
+      uluna: Big(lunaJobRewardAndCreationFee).add(Big(lunaSwapAmount)).toString(),
+    }
+  );
 
   const astroportNativeSwapMsg = {
     swap: {
@@ -107,7 +104,7 @@ const run = async () => {
     },
   };
 
-  const jobVarName = "luna-astro-price-10LUNA-receive-how-much-ASTRO";
+  const jobVarName = "luna-astro-price";
   const jobVar = {
     query: {
       // kind: 'int', // uint, amount, decimal are all allowed
@@ -156,11 +153,7 @@ const run = async () => {
     },
   });
 
-  createSignBroadcastCatch(wallet, [
-    fundWarpAccountForJobRewardAndCreationFee,
-    fundWarpAccountForOfferedAmount,
-    createJob,
-  ]);
+  createSignBroadcastCatch(wallet, [createWarpAccountIfNotExistAndFundAccount, createJob], false);
 };
 
 run();

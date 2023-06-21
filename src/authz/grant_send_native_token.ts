@@ -9,7 +9,7 @@ import { CHAIN_PREFIX } from "../env";
 const lcd = getLCD();
 
 const mnemonicKey1 = getMnemonicKey();
-const mnemonicKey2 = getMnemonicKey(true);
+const mnemonicKey2 = getMnemonicKey(2);
 const wallet1 = getWallet(lcd, mnemonicKey1);
 const wallet2 = getWallet(lcd, mnemonicKey2);
 

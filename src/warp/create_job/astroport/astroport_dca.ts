@@ -1,11 +1,10 @@
 import Big from "big.js";
-import { MsgExecuteContract, MsgSend } from "@terra-money/feather.js";
+import { MsgExecuteContract } from "@terra-money/feather.js";
 import {
   createSignBroadcastCatch,
   getLCD,
   getMnemonicKey,
   getWallet,
-  getWarpAccountAddress,
   getWarpJobCreationFeePercentage,
   toBase64,
 } from "../../../util";
@@ -58,7 +57,6 @@ const singleSwapAmount = Big(lunaSwapAmount).div(dcaNumber).round(3, 0).toString
 
 const run = async () => {
   const warpCreationFeePercentages = await getWarpJobCreationFeePercentage(lcd);
-  const warpAccountAddress = await getWarpAccountAddress(lcd, myAddress);
 
   const lunaJobReward = lunaAmount1;
   // creation fee + reward + potential eviction fee
@@ -68,17 +66,16 @@ const run = async () => {
     .mul(dcaNumberPlus1) // each recurring job needs to pay creation fee and reward
     .toString();
 
-  // TODO: warp currently doesn't support create account and fund it in 1 tx, but it's in feature branch
-  // const createWarpAccount = new MsgExecuteContract(myAddress, warpControllerAddress, {
-  //   create_account: {},
-  // });
-
-  const fundWarpAccountForJobRewardAndCreationFee = new MsgSend(myAddress, warpAccountAddress, {
-    uluna: lunaJobFee,
-  });
-  const fundWarpAccountForOfferedAmount = new MsgSend(myAddress, warpAccountAddress, {
-    uluna: lunaSwapAmount,
-  });
+  const createWarpAccountIfNotExistAndFundAccount = new MsgExecuteContract(
+    myAddress,
+    warpControllerAddress,
+    {
+      create_account: {},
+    },
+    {
+      uluna: Big(lunaJobFee).add(Big(lunaSwapAmount)).toString(),
+    }
+  );
 
   const astroportNativeSwapMsg = {
     swap: {
@@ -217,11 +214,7 @@ const run = async () => {
     },
   });
 
-  createSignBroadcastCatch(wallet, [
-    fundWarpAccountForJobRewardAndCreationFee,
-    fundWarpAccountForOfferedAmount,
-    createJob,
-  ]);
+  createSignBroadcastCatch(wallet, [createWarpAccountIfNotExistAndFundAccount, createJob]);
 };
 
 run();
