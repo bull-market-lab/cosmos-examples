@@ -68,6 +68,7 @@
     "warp-evict-job": "ts-node src/warp/interact_with_job/evict_job.ts",
     "warp-create-job": "ts-node src/warp/create_job/simple/create_job.ts",
     "warp-create-job2": "ts-node src/warp/create_job/simple/create_job2.ts",
+    "warp-recurring-payment": "ts-node src/warp/create_job/payment/recurring_payment.ts",
     "warp-astroport-limit-order-swap-native-from-router": "ts-node src/warp/create_job/astroport/astroport_limit_order_swap_native_from_router.ts",
     "warp-astroport-limit-order-swap-cw20-from-router": "ts-node src/warp/create_job/astroport/astroport_limit_order_swap_cw20_from_router.ts",
     "warp-astroport-limit-order-swap-native-from-pool": "ts-node src/warp/create_job/astroport/astroport_limit_order_swap_native_from_pool.ts",
