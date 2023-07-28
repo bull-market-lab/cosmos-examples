@@ -1,17 +1,12 @@
 import { warp_controller } from "@terra-money/warp-sdk";
-import {
-  getLCDOld,
-  getMnemonicKeyOld,
-  getWalletOld,
-  initWarpSdk,
-  printAxiosError,
-} from "../../util";
+import { getLCD, getMnemonicKey, getWallet, initWarpSdk, printAxiosError } from "../../util";
+import { CHAIN_PREFIX } from "../../env";
 
-const mnemonicKey = getMnemonicKeyOld();
-const lcd = getLCDOld();
-const wallet = getWalletOld(lcd, mnemonicKey);
-const warpSdk = initWarpSdk(lcd, wallet);
-const owner = wallet.key.accAddress;
+const mnemonicKey = getMnemonicKey();
+const lcd = getLCD();
+const wallet = getWallet(lcd, mnemonicKey);
+const warpSdk = initWarpSdk();
+const owner = wallet.key.accAddress(CHAIN_PREFIX);
 
 const updateMsg: warp_controller.UpdateJobMsg = {
   // min reward is 20 uluna (0.0002) luna to prevent job evicted

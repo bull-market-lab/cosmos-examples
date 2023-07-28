@@ -1,19 +1,14 @@
-import {
-  getLCDOld,
-  getMnemonicKeyOld,
-  getWalletOld,
-  initWarpSdk,
-  printAxiosError,
-} from "../../util";
+import { CHAIN_PREFIX } from "../../env";
+import { getLCD, getMnemonicKey, getWallet, initWarpSdk, printAxiosError } from "../../util";
 
-const mnemonicKey = getMnemonicKeyOld();
-const lcd = getLCDOld();
-const wallet = getWalletOld(lcd, mnemonicKey);
-const warpSdk = initWarpSdk(lcd, wallet);
+const mnemonicKey = getMnemonicKey();
+const lcd = getLCD();
+const wallet = getWallet(lcd, mnemonicKey);
+const warpSdk = initWarpSdk();
 
 const run = async () => {
   warpSdk
-    .createAccount(wallet.key.accAddress)
+    .createAccount(wallet.key.accAddress(CHAIN_PREFIX))
     .then((txInfo) => {
       console.log(txInfo);
     })

@@ -1,12 +1,7 @@
 import axios from "axios";
-import {
-  LCDClient as LCDClientOld,
-  MnemonicKey as MnemonicKeyOld,
-  Wallet as WalletOld,
-} from "@terra-money/terra.js";
 import { LCDClient, MnemonicKey, Msg, Wallet } from "@terra-money/feather.js";
 
-import { WarpSdk } from "@terra-money/warp-sdk";
+import { CW20Addr, CW20Token, NativeToken, WarpSdk } from "@terra-money/warp-sdk";
 import {
   CHAIN_DENOM,
   CHAIN_ID,
@@ -18,55 +13,11 @@ import {
   TESTER3_MNEMONIC_KEY,
   DEFAULT_TESTER_ID,
   WARP_CONTROLLER_ADDRESS,
-  WARP_RESOLVER_ADDRESS,
+  ASTRO_TOKEN_ADDRESS,
 } from "./env";
 
-export const getLCDOld = (): LCDClientOld => {
-  return new LCDClientOld({
-    URL: LCD_ENDPOINT,
-    chainID: CHAIN_ID,
-  });
-};
-
-export const getMnemonicKeyOld = (testerId = DEFAULT_TESTER_ID): MnemonicKeyOld => {
-  switch (testerId) {
-    case 1:
-      return new MnemonicKeyOld({
-        mnemonic: TESTER1_MNEMONIC_KEY,
-        coinType: IS_COIN_TYPE_118 ? 118 : 330,
-      });
-    case 2:
-      return new MnemonicKeyOld({
-        mnemonic: TESTER2_MNEMONIC_KEY,
-        coinType: IS_COIN_TYPE_118 ? 118 : 330,
-      });
-    case 3:
-      return new MnemonicKeyOld({
-        mnemonic: TESTER3_MNEMONIC_KEY,
-        coinType: IS_COIN_TYPE_118 ? 118 : 330,
-      });
-    default:
-      return new MnemonicKeyOld({
-        mnemonic: TESTER1_MNEMONIC_KEY,
-        coinType: IS_COIN_TYPE_118 ? 118 : 330,
-      });
-  }
-};
-
-export const getWalletOld = (lcd: LCDClientOld, mnemonicKey: MnemonicKeyOld): WalletOld => {
-  return new WalletOld(lcd, mnemonicKey);
-};
-
-export const initWarpSdk = (lcd: LCDClientOld, wallet: WalletOld): WarpSdk => {
-  // const contractAddress =
-  //   CHAIN_ID === CHAIN_ID_LOCALTERRA
-  //     ? WARP_CONTROLLER_ADDRESS!
-  //     : getContractAddress(getNetworkName(lcd.config.chainID), "warp-controller")!;
-  return new WarpSdk(wallet, WARP_CONTROLLER_ADDRESS!, WARP_RESOLVER_ADDRESS!);
-};
-
-export const getCurrentBlockHeight = async (lcd: LCDClientOld): Promise<string> => {
-  return (await lcd.tendermint.blockInfo()).block.header.height;
+export const getCurrentBlockHeight = async (lcd: LCDClient): Promise<string> => {
+  return (await lcd.tendermint.blockInfo(CHAIN_ID)).block.header.height;
 };
 
 export const getLCD = (): LCDClient => {
@@ -108,6 +59,11 @@ export const getMnemonicKey = (testerId = DEFAULT_TESTER_ID): MnemonicKey => {
 
 export const getWallet = (lcd: LCDClient, mnemonicKey: MnemonicKey): Wallet => {
   return new Wallet(lcd, mnemonicKey);
+};
+
+export const initWarpSdk = (): WarpSdk => {
+  const lcd = getLCD();
+  return new WarpSdk(getWallet(lcd, getMnemonicKey()), lcd.config[CHAIN_ID]);
 };
 
 export const toBase64 = (obj: Object) => {
@@ -197,4 +153,25 @@ export const createSignBroadcastCatch = async (
       printAxiosError(e);
       throw e;
     });
+};
+
+export const LUNA_TOKEN: NativeToken = {
+  key: "luna",
+  name: "Luna",
+  symbol: "LUNA",
+  icon: "",
+  decimals: 6,
+  type: "native",
+  denom: "uluna",
+};
+
+export const ASTRO_TOKEN: CW20Token = {
+  key: "astro",
+  name: "Astro",
+  symbol: "ASTRO",
+  icon: "",
+  decimals: 6,
+  type: "cw20",
+  protocol: "astroport",
+  token: ASTRO_TOKEN_ADDRESS! as CW20Addr,
 };

@@ -1,24 +1,25 @@
 // create immediately executable job and delay job (executable after 5 blocks, about 30s)
+import { Coins, CreateTxOptions, MsgExecuteContract } from "@terra-money/feather.js";
 import {
   getCurrentBlockHeight,
-  getLCDOld,
-  getMnemonicKeyOld,
-  getWalletOld,
+  getLCD,
+  getMnemonicKey,
+  getWallet,
   initWarpSdk,
   printAxiosError,
 } from "../../../util";
 import { warp_controller } from "@terra-money/warp-sdk";
-import { CreateTxOptions, Coins, MsgExecuteContract } from "@terra-money/terra.js";
+import { CHAIN_ID, CHAIN_PREFIX, WARP_CONTROLLER_ADDRESS } from "../../../env";
 
 function executeMsg<T extends {}>(sender: string, contract: string, msg: T, coins?: Coins.Input) {
   return new MsgExecuteContract(sender, contract, msg, coins);
 }
 
-const mnemonicKey = getMnemonicKeyOld();
-const lcd = getLCDOld();
-const wallet = getWalletOld(lcd, mnemonicKey);
-const warpSdk = initWarpSdk(lcd, wallet);
-const owner = wallet.key.accAddress;
+const mnemonicKey = getMnemonicKey();
+const lcd = getLCD();
+const wallet = getWallet(lcd, mnemonicKey);
+const warpSdk = initWarpSdk();
+const owner = wallet.key.accAddress(CHAIN_PREFIX);
 
 const amount1Luna = (1_000_000).toString();
 
@@ -185,7 +186,7 @@ const run = async () => {
   ].map((msg) =>
     executeMsg<Extract<warp_controller.ExecuteMsg, { create_job: warp_controller.CreateJobMsg }>>(
       owner,
-      warpSdk.controllerContract,
+      WARP_CONTROLLER_ADDRESS!,
       {
         create_job: msg,
       }
@@ -205,11 +206,12 @@ const run = async () => {
   // manually create jobs
   const txOptions: CreateTxOptions = {
     msgs: cosmosMsgs,
+    chainID: CHAIN_ID,
   };
 
   const tx = await wallet
     .createAndSignTx(txOptions)
-    .then((tx) => wallet.lcd.tx.broadcast(tx))
+    .then((tx) => wallet.lcd.tx.broadcast(tx, CHAIN_ID))
     .then((txInfo) => {
       console.log(txInfo);
       console.log("created all jobs");
