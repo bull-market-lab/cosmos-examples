@@ -9,10 +9,10 @@ import {
   printAxiosError,
 } from "../../util";
 
-const mnemonicKey = getMnemonicKey(2);
+const mnemonicKey = getMnemonicKey();
 const lcd = getLCD();
 const wallet = getWallet(lcd, mnemonicKey);
-const warpSdk = initWarpSdk();
+// const warpSdk = initWarpSdk();
 const sender = wallet.key.accAddress(CHAIN_PREFIX);
 const warpControllerAddress = WARP_CONTROLLER_ADDRESS!;
 
@@ -25,15 +25,19 @@ const run = async (jobId?: string) => {
     //     printAxiosError(e);
     //     throw e;
     //   });
-    jobId = await lcd.wasm
+    const jobs = await lcd.wasm
       .contractQuery(warpControllerAddress, {
         query_jobs: {},
       })
       .then((res) => {
         // @ts-ignore
-        return res.jobs[0].id;
+        return res.jobs;
       });
 
+    if (jobs.length === 0) {
+      throw new Error("no jobs found");
+    }
+    jobId = jobs[0].id;
     console.log("latest jobId", jobId);
   }
 
@@ -54,5 +58,5 @@ const run = async (jobId?: string) => {
   //   });
 };
 
-// run("1");
+// run("4");
 run();
