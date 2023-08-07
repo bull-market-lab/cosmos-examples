@@ -1,10 +1,10 @@
-import { getLCD, printAxiosError } from '../util';
+import { getLCD, printAxiosError } from "../util";
 import {
   ASTROPORT_ROUTER_ADDRESS,
   ASTRO_LUNA_PAIR_ADDRESS,
   ASTRO_TOKEN_ADDRESS,
   CHAIN_DENOM,
-} from '../env';
+} from "../env";
 
 const lcd = getLCD();
 
@@ -15,7 +15,7 @@ const astroTokenAddress = ASTRO_TOKEN_ADDRESS!;
 
 const lunaAmount10 = (10_000_000).toString();
 const astroAmount10 = (10_000_000).toString();
-const lunaSwapAmount = lunaAmount10.toString();
+const swapAmount = lunaAmount10.toString();
 const astroSwapAmount = astroAmount10.toString();
 
 const queryPool = async () => {
@@ -44,7 +44,7 @@ const querySimulateSwap = async (fromLuna: boolean = true) => {
           denom: CHAIN_DENOM,
         },
       },
-      amount: lunaSwapAmount,
+      amount: swapAmount,
     };
   } else {
     offerAsset = {
@@ -66,7 +66,7 @@ const querySimulateSwap = async (fromLuna: boolean = true) => {
       console.log(`query pool simulate swap endpoint`, JSON.stringify(result, null, 2));
       //   const beliefPrice = String(result.return_amount * 1_000_000);
       const beliefPrice = // @ts-ignore
-        (result.return_amount / (fromLuna ? lunaSwapAmount : astroSwapAmount)).toFixed(18);
+        (result.return_amount / (fromLuna ? swapAmount : astroSwapAmount)).toFixed(18);
       console.log(`beliefPrice`, beliefPrice);
     })
     .catch((e) => {
@@ -80,7 +80,7 @@ const queryRouterSimulateSwap = async (fromLuna: boolean = true) => {
   let simulateSwapOperation;
   if (fromLuna) {
     simulateSwapOperation = {
-      offer_amount: lunaSwapAmount,
+      offer_amount: swapAmount,
       operations: [
         {
           astro_swap: {
@@ -126,7 +126,7 @@ const queryRouterSimulateSwap = async (fromLuna: boolean = true) => {
     .then((result) => {
       console.log(`query router simulate swap endpoint`, JSON.stringify(result, null, 2));
       const beliefPrice = // @ts-ignore
-        (result.amount / (fromLuna ? lunaSwapAmount : astroSwapAmount)).toFixed(18);
+        (result.amount / (fromLuna ? swapAmount : astroSwapAmount)).toFixed(18);
       console.log(`beliefPrice`, beliefPrice);
     })
     .catch((e) => {

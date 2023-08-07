@@ -36,10 +36,10 @@ const run = async () => {
   // round down to 3 decimal places to avoid running out of fund
   const singlePaymentAmount = Big(totalPaymentAmount).div(totalPaymentCount).round(3, 0).toString();
 
-  const lunaJobReward = (100_000).toString();
+  const jobReward = (100_000).toString();
   // creation fee + reward + potential eviction fee
   const warpCreationFeePercentages = await getWarpJobCreationFeePercentage(lcd);
-  const lunaJobFee = Big(lunaJobReward)
+  const lunaJobFee = Big(jobReward)
     .mul(Big(warpCreationFeePercentages).add(100).div(100))
     // .add(50_000) // eviction fee 0.05
     .mul(totalPaymentCount)
@@ -176,7 +176,7 @@ const run = async () => {
         labels: [],
         recurring: true,
         requeue_on_evict: true,
-        reward: lunaJobReward,
+        reward: jobReward,
         condition: JSON.stringify(condition),
         terminate_condition: JSON.stringify(terminateCondition),
         msgs: JSON.stringify([JSON.stringify(bankSend)]),

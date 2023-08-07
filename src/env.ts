@@ -31,3 +31,7 @@ export const ENTERPRISE_DAO_ADDRESS: string | undefined = env.ENTERPRISE_DAO_ADD
 export const ASTRO_LUNA_PAIR_ADDRESS: string | undefined = env.ASTRO_LUNA_PAIR_ADDRESS;
 export const ASTRO_TOKEN_ADDRESS: string | undefined = env.ASTRO_TOKEN_ADDRESS;
 export const ASTROPORT_ROUTER_ADDRESS: string | undefined = env.ASTROPORT_ROUTER_ADDRESS;
+
+export const MARS_RED_BANK_ADDRESS: string | undefined = env.MARS_RED_BANK_ADDRESS;
+
+export const USDC_DENOM: string | undefined = env.USDC_DENOM;
