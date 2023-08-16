@@ -76,8 +76,10 @@
     "warp-astroport-limit-order-swap-cw20-from-router": "ts-node src/warp/create_job/astroport/limit_order_swap_cw20_from_router.ts",
     "warp-astroport-limit-order-swap-native-from-pool": "ts-node src/warp/create_job/astroport/limit_order_swap_native_from_pool.ts",
     "warp-astroport-limit-order-swap-cw20-from-pool": "ts-node src/warp/create_job/astroport/limit_order_swap_cw20_from_pool.ts",
+    "warp-astroport-yield-bearing-limit-order-swap-native-from-pool": "ts-node src/warp/create_job/astroport_and_mars/yield_bearing_limit_order_swap_native_from_pool.ts",
     "warp-astroport-dca": "ts-node src/warp/create_job/astroport/dca.ts",
     "warp-enterprise-execute-proposal-upon-passing": "ts-node src/warp/create_job/enterprise/execute_proposal_upon_passing.ts",
-    "warp-authz-claim-staking-reward": "ts-node src/warp/create_job/authz/claim_staking_reward.ts"
+    "warp-authz-claim-staking-reward": "ts-node src/warp/create_job/authz/claim_staking_reward.ts",
+    "warp-test": "ts-node src/warp/create_job/astroport_and_mars/test.ts"
   }
 }

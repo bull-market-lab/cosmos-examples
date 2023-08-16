@@ -80,26 +80,6 @@ export const toBase64FromBuffer = (b: Buffer) => {
   return b.toString("base64");
 };
 
-export const getWarpAccountAddress = async (lcd: LCDClient, owner: string): Promise<string> => {
-  const warpControllerAddress = WARP_CONTROLLER_ADDRESS!;
-  const warpAccount = await lcd.wasm.contractQuery(warpControllerAddress, {
-    query_account: {
-      owner: owner,
-    },
-  });
-  // @ts-ignore
-  return warpAccount.account.account;
-};
-
-export const getWarpJobCreationFeePercentage = async (lcd: LCDClient): Promise<string> => {
-  const warpControllerAddress = WARP_CONTROLLER_ADDRESS!;
-  const warpConfig = await lcd.wasm.contractQuery(warpControllerAddress, {
-    query_config: {},
-  });
-  // @ts-ignore
-  return warpConfig.config.creation_fee_percentage;
-};
-
 // if is axios error then print the extracted part otherwise print whole error
 // most of time it should be cause axios error is the one returned when we call lcd
 export const printAxiosError = (e: any) => {
@@ -121,6 +101,38 @@ export const printAxiosError = (e: any) => {
   } else {
     console.log(e);
   }
+};
+
+export const getWarpAccountAddress = async (lcd: LCDClient, owner: string): Promise<string> => {
+  const warpControllerAddress = WARP_CONTROLLER_ADDRESS!;
+  const warpAccount = await wasmContractQueryCatch(lcd, warpControllerAddress, {
+    query_account: {
+      owner: owner,
+    },
+  });
+  // @ts-ignore
+  return warpAccount.account.account;
+};
+
+export const getWarpJobCreationFeePercentage = async (lcd: LCDClient): Promise<string> => {
+  const warpControllerAddress = WARP_CONTROLLER_ADDRESS!;
+  const warpConfig = await wasmContractQueryCatch(lcd, warpControllerAddress, {
+    query_config: {},
+  });
+  // @ts-ignore
+  return warpConfig.config.creation_fee_percentage;
+};
+
+export const wasmContractQueryCatch = async (
+  lcd: LCDClient,
+  contractAddress: string,
+  query: object
+) => {
+  return lcd.wasm.contractQuery(contractAddress, query).catch((e) => {
+    console.log(`error in querying contract ${contractAddress}`);
+    printAxiosError(e);
+    throw e;
+  });
 };
 
 export const createSignBroadcastCatch = async (
