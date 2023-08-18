@@ -3,7 +3,7 @@ import {
   getLCD,
   getMnemonicKey,
   getWallet,
-  getWarpAccountAddress,
+  getWarpDefaultAccountAddress,
   toBase64FromBinary,
 } from "../../util";
 import { CHAIN_PREFIX, VALIDATOR_ADDRESS } from "../../env";
@@ -20,7 +20,7 @@ const wallet = getWallet(lcd, mnemonicKey);
 const myAddress = wallet.key.accAddress(CHAIN_PREFIX);
 
 const authzExecute = async () => {
-  const warpAccountAddress = await getWarpAccountAddress(lcd, myAddress);
+  const warpAccountAddress = await getWarpDefaultAccountAddress(lcd, myAddress);
 
   const grantee = warpAccountAddress;
   const withdrawDelegatorRewardMsg: MsgWithdrawDelegatorReward[] = [

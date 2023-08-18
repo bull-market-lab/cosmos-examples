@@ -31,7 +31,7 @@ const run = async () => {
   // maybe i don't need to specify spread in swap msg, as condition already ensure i get the price i want
   const maxSpread = "0.01";
 
-  const lunaSwapAmount = (1_000_000).toString();
+  const swapAmount = (1_000_000).toString();
 
   const dcaNumber = (2).toString();
   const dcaNumberPlus1 = (parseInt(dcaNumber) + 1).toString();
@@ -44,12 +44,12 @@ const run = async () => {
   const dcaStartTime = String(Math.floor(Date.now() / 1000));
 
   // round down to 3 decimal places to avoid running out of fund
-  const singleSwapAmount = Big(lunaSwapAmount).div(dcaNumber).round(3, 0).toString();
+  const singleSwapAmount = Big(swapAmount).div(dcaNumber).round(3, 0).toString();
 
-  const lunaJobReward = (1_000_000).toString();
+  const jobReward = (1_000_000).toString();
   // creation fee + reward + potential eviction fee
   const warpCreationFeePercentages = await getWarpJobCreationFeePercentage(lcd);
-  const lunaJobFee = Big(lunaJobReward)
+  const lunaJobFee = Big(jobReward)
     .mul(Big(warpCreationFeePercentages).add(100).div(100))
     .add(50_000) // eviction fee 0.05
     .mul(dcaNumberPlus1) // each recurring job needs to pay creation fee and reward, plus 1 to cover the dummy job that created after last execution, TODO: remove it after warp supports terminate_fn
@@ -62,7 +62,7 @@ const run = async () => {
       create_account: {},
     },
     {
-      uluna: Big(lunaJobFee).add(Big(lunaSwapAmount)).toString(),
+      uluna: Big(lunaJobFee).add(Big(swapAmount)).toString(),
     }
   );
 
@@ -196,7 +196,7 @@ const run = async () => {
       labels: [],
       recurring: true,
       requeue_on_evict: true,
-      reward: lunaJobReward,
+      reward: jobReward,
       condition: condition,
       msgs: [nativeSwapJsonString],
       vars: [jobVarNextExecution, jobVarAlreadyRunCounter],

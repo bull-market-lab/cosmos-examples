@@ -3,7 +3,7 @@ import {
   getLCD,
   getMnemonicKey,
   getWallet,
-  getWarpAccountAddress,
+  getWarpDefaultAccountAddress,
 } from "../../util";
 import { ASTRO_TOKEN_ADDRESS, CHAIN_PREFIX } from "../../env";
 import { MsgExecuteContract } from "@terra-money/feather.js";
@@ -20,7 +20,7 @@ const lunaAmount = (659_500).toString();
 const astroAmount = (6_701_058).toString();
 
 const withdraw = async () => {
-  const warpAccountAddress = await getWarpAccountAddress(lcd, myAddress);
+  const warpAccountAddress = await getWarpDefaultAccountAddress(lcd, myAddress);
   const executeMsg = {
     generic: {
       msgs: [

@@ -24,7 +24,7 @@ const warpControllerAddress = WARP_CONTROLLER_ADDRESS!;
 const run = async () => {
   const totalPaymentAmount = (1_000_000).toString();
 
-  const totalPaymentCount = (2).toString();
+  const totalPaymentCount = (5).toString();
 
   // 86400 is 1 day in seconds
   // const dcaInterval = 60 * 60 * 24 * 7;
@@ -36,7 +36,7 @@ const run = async () => {
   // round down to 3 decimal places to avoid running out of fund
   const singlePaymentAmount = Big(totalPaymentAmount).div(totalPaymentCount).round(3, 0).toString();
 
-  const jobReward = (500_000).toString();
+  const jobReward = (100_000).toString();
   // creation fee + reward + potential eviction fee
   const warpCreationFeePercentages = await getWarpJobCreationFeePercentage(lcd);
   const lunaJobFee = Big(jobReward)
@@ -44,17 +44,6 @@ const run = async () => {
     // .add(50_000) // eviction fee 0.05
     .mul(totalPaymentCount)
     .toString();
-
-  const createWarpAccountIfNotExistAndFundAccount = new MsgExecuteContract(
-    senderAddress,
-    warpControllerAddress,
-    {
-      create_account: {},
-    },
-    {
-      uluna: Big(lunaJobFee).add(Big(totalPaymentAmount)).toString(),
-    }
-  );
 
   const bankSend = {
     bank: {
@@ -168,27 +157,39 @@ const run = async () => {
     },
   };
 
-  const createJob = new MsgExecuteContract(senderAddress, warpControllerAddress, {
-    create_job: {
-      name: "recurring_payment",
-      description: "recurring payment job",
-      labels: [],
-      recurring: true,
-      requeue_on_evict: true,
-      reward: jobReward,
-      condition: JSON.stringify(condition),
-      // terminate_condition: JSON.stringify(terminateCondition),
-      msgs: JSON.stringify([JSON.stringify(bankSend)]),
-      vars: JSON.stringify([
-        // JSON.stringify(jobVarNextExecution),
-        // JSON.stringify(jobVarAlreadyRunCounter),
-        jobVarNextExecution,
-        jobVarAlreadyRunCounter,
-      ]),
+  const condition2 = {
+    expr: {
+      block_height: {
+        comparator: "0",
+        op: "gt",
+      },
     },
-  });
+  };
 
-  createSignBroadcastCatch(wallet1, [createWarpAccountIfNotExistAndFundAccount, createJob]);
+  const createSubAccountAndRecurringJob = new MsgExecuteContract(
+    senderAddress,
+    warpControllerAddress,
+    {
+      create_account_and_job: {
+        name: "recurring_payment_using_sub_account",
+        description: "recurring payment job using job account",
+        labels: [],
+        recurring: true,
+        requeue_on_evict: true,
+        reward: jobReward,
+        condition: JSON.stringify(condition),
+        terminate_condition: JSON.stringify(terminateCondition),
+        msgs: JSON.stringify([JSON.stringify(bankSend)]),
+        vars: JSON.stringify([jobVarNextExecution, jobVarAlreadyRunCounter]),
+        is_sub_account: true,
+      },
+    },
+    {
+      uluna: Big(lunaJobFee).add(Big(totalPaymentAmount)).toString(),
+    }
+  );
+
+  createSignBroadcastCatch(wallet1, [createSubAccountAndRecurringJob]);
 };
 
 run();

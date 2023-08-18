@@ -9,7 +9,7 @@ import {
   getLCD,
   getMnemonicKey,
   getWallet,
-  getWarpAccountAddress,
+  getWarpDefaultAccountAddress,
   getWarpJobCreationFeePercentage,
   toBase64FromBinary,
 } from "../../../util";
@@ -32,10 +32,10 @@ const run = async () => {
   const claimStartTime = String(Math.floor(Date.now() / 1000));
 
   const warpCreationFeePercentages = await getWarpJobCreationFeePercentage(lcd);
-  const warpAccountAddress = await getWarpAccountAddress(lcd, myAddress);
+  const warpAccountAddress = await getWarpDefaultAccountAddress(lcd, myAddress);
 
-  const lunaJobReward = (1_000_000).toString();
-  const lunaJobRewardAndCreationFee = Big(lunaJobReward)
+  const jobReward = (1_000_000).toString();
+  const jobRewardAndCreationFee = Big(jobReward)
     .mul(Big(warpCreationFeePercentages).add(100).div(100))
     .toString();
 
@@ -46,7 +46,7 @@ const run = async () => {
       create_account: {},
     },
     {
-      uluna: lunaJobRewardAndCreationFee,
+      uluna: jobRewardAndCreationFee,
     }
   );
 
@@ -118,7 +118,7 @@ const run = async () => {
       labels: [],
       recurring: true,
       requeue_on_evict: false,
-      reward: lunaJobReward,
+      reward: jobReward,
       condition: condition,
       msgs: [authzClaimStakingRewardJsonString],
       vars: [jobVarNextExecution],

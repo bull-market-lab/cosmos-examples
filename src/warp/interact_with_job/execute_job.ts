@@ -1,36 +1,62 @@
+import { MsgExecuteContract } from "@terra-money/feather.js";
+import { CHAIN_PREFIX, WARP_CONTROLLER_ADDRESS } from "../../env";
 import {
-  getLCDOld,
-  getMnemonicKeyOld,
-  getWalletOld,
+  createSignBroadcastCatch,
+  getLCD,
+  getMnemonicKey,
+  getWallet,
   initWarpSdk,
   printAxiosError,
 } from "../../util";
 
-const mnemonicKey = getMnemonicKeyOld(1);
-const lcd = getLCDOld();
-const wallet = getWalletOld(lcd, mnemonicKey);
-const warpSdk = initWarpSdk(lcd, wallet);
-const owner = wallet.key.accAddress;
+const mnemonicKey = getMnemonicKey();
+const lcd = getLCD();
+const wallet = getWallet(lcd, mnemonicKey);
+// const warpSdk = initWarpSdk();
+const sender = wallet.key.accAddress(CHAIN_PREFIX);
+const warpControllerAddress = WARP_CONTROLLER_ADDRESS!;
 
 const run = async (jobId?: string) => {
   if (!jobId) {
-    jobId = await warpSdk
-      .jobs()
-      .then((jobs) => jobs[0].id)
-      .catch((e) => {
-        printAxiosError(e);
-        throw e;
+    // jobId = await warpSdk
+    //   .jobs()
+    //   .then((jobs) => jobs[0].id)
+    //   .catch((e) => {
+    //     printAxiosError(e);
+    //     throw e;
+    //   });
+    const jobs = await lcd.wasm
+      .contractQuery(warpControllerAddress, {
+        query_jobs: {},
+      })
+      .then((res) => {
+        // @ts-ignore
+        return res.jobs;
       });
+
+    if (jobs.length === 0) {
+      throw new Error("no jobs found");
+    }
+    jobId = jobs[0].id;
+    console.log("latest jobId", jobId);
   }
-  console.log("latest jobId", jobId);
-  warpSdk
-    .executeJob(owner, jobId)
-    .then((txInfo) => console.log(txInfo))
-    .catch((e) => {
-      printAxiosError(e);
-      throw e;
-    });
+
+  const executeJob = new MsgExecuteContract(sender, warpControllerAddress, {
+    execute_job: {
+      id: jobId,
+    },
+  });
+
+  createSignBroadcastCatch(wallet, [executeJob]);
+
+  // warpSdk
+  //   .executeJob(sender, jobId)
+  //   .then((txInfo) => console.log(txInfo))
+  //   .catch((e) => {
+  //     printAxiosError(e);
+  //     throw e;
+  //   });
 };
 
-// run("11");
+// run("4");
 run();

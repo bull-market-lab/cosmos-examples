@@ -28,9 +28,9 @@ const run = async () => {
   // in general id is either in string number or number, try both if one doesn't work
   const proposalId = 1;
 
-  const lunaJobReward = (1_000_000).toString();
+  const jobReward = (1_000_000).toString();
   const warpCreationFeePercentages = await getWarpJobCreationFeePercentage(lcd);
-  const lunaJobRewardAndCreationFee = Big(lunaJobReward)
+  const jobRewardAndCreationFee = Big(jobReward)
     .mul(Big(warpCreationFeePercentages).add(100).div(100))
     .toString();
 
@@ -41,7 +41,7 @@ const run = async () => {
       create_account: {},
     },
     {
-      uluna: lunaJobRewardAndCreationFee,
+      uluna: jobRewardAndCreationFee,
     }
   );
 
@@ -116,7 +116,7 @@ const run = async () => {
       labels: [],
       recurring: false,
       requeue_on_evict: false,
-      reward: lunaJobReward,
+      reward: jobReward,
       condition: condition,
       msgs: [enterpriseExecuteProposalJsonString],
       vars: [jobVar],

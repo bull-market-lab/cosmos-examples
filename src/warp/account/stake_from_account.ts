@@ -3,7 +3,7 @@ import {
   getLCD,
   getMnemonicKey,
   getWallet,
-  getWarpAccountAddress,
+  getWarpDefaultAccountAddress,
 } from "../../util";
 import { CHAIN_DENOM, CHAIN_PREFIX, VALIDATOR_ADDRESS } from "../../env";
 import { MsgExecuteContract } from "@terra-money/feather.js";
@@ -17,7 +17,7 @@ const myAddress = wallet.key.accAddress(CHAIN_PREFIX);
 const lunaAmount = (10_000_000).toString();
 
 const stake = async () => {
-  const warpAccountAddress = await getWarpAccountAddress(lcd, myAddress);
+  const warpAccountAddress = await getWarpDefaultAccountAddress(lcd, myAddress);
   const executeMsg = {
     msgs: [
       {

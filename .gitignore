@@ -74,6 +74,7 @@ typings/
 .testnet.env
 .localterra.env
 .testnet_neutron.env
+.testnet_osmosis.env
 
 # parcel-bundler cache (https://parceljs.org/)
 .cache

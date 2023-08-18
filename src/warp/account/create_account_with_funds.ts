@@ -1,17 +1,11 @@
 import { warp_controller } from "@terra-money/warp-sdk";
-import {
-  getLCDOld,
-  getMnemonicKeyOld,
-  getWalletOld,
-  initWarpSdk,
-  printAxiosError,
-} from "../../util";
-import { ASTRO_TOKEN_ADDRESS } from "../../env";
+import { getLCD, getMnemonicKey, getWallet, initWarpSdk, printAxiosError } from "../../util";
+import { ASTRO_TOKEN_ADDRESS, CHAIN_PREFIX } from "../../env";
 
-const mnemonicKey = getMnemonicKeyOld();
-const lcd = getLCDOld();
-const wallet = getWalletOld(lcd, mnemonicKey);
-const warpSdk = initWarpSdk(lcd, wallet);
+const mnemonicKey = getMnemonicKey();
+const lcd = getLCD();
+const wallet = getWallet(lcd, mnemonicKey);
+const warpSdk = initWarpSdk();
 
 const astroAmount1 = (1_000_000).toString();
 const astroTokenAddress = ASTRO_TOKEN_ADDRESS!;
@@ -26,7 +20,7 @@ const createAccountWithFunds = async () => {
     },
   ];
   warpSdk
-    .createAccount(wallet.key.accAddress, funds)
+    .createAccount(wallet.key.accAddress(CHAIN_PREFIX), funds)
     .then((txInfo) => {
       console.log(txInfo);
     })

@@ -35,54 +35,30 @@ const run = async () => {
   // when max_spread and minimum_receive are both specified, the swap will fail if receive amount is not in the range of [minimum_receive, return_amount * (1 +/- max_spread)]
   // actually i think i only need to specify minimum_receive in condition
   // no need for actual swap msg cause checking condition is atomic with executing swap msg
-  const expectedReceivedLunaAmount = (9_010_335).toString();
+  const expectedReceivedAstroAmount = (9_010_335).toString();
   // default spread is 0.01 which is 1%
   // maybe i don't need to specify spread in swap msg, as condition already ensure i get the price i want
   const maxSpread = "0.1";
 
-  const astroSwapAmount = (10_000_000).toString();
-
-  const lunaJobReward = (1_000_000).toString();
+  const swapAmount = (10_000_000).toString();
+  const jobReward = (1_000_000).toString();
   const warpCreationFeePercentages = await getWarpJobCreationFeePercentage(lcd);
-  const lunaJobRewardAndCreationFee = Big(lunaJobReward)
+  const jobRewardAndCreationFee = Big(jobReward)
     .mul(Big(warpCreationFeePercentages).add(100).div(100))
     .toString();
-
-  // we need to increase allowance first
-  // because warp controller will transfer the fund on behalf of the us to our warp account
-  const increaseAllowance = new MsgExecuteContract(myAddress, astroTokenAddress, {
-    increase_allowance: {
-      spender: warpControllerAddress,
-      amount: astroSwapAmount,
-      expires: {
-        never: {},
-      },
-    },
-  });
 
   const createWarpAccountIfNotExistAndFundAccount = new MsgExecuteContract(
     myAddress,
     warpControllerAddress,
     {
-      create_account: {
-        // cw fund to be swapped
-        funds: [
-          {
-            cw20: {
-              contract_addr: astroTokenAddress,
-              amount: astroSwapAmount,
-            },
-          },
-        ],
-      },
+      create_account: {},
     },
-    // native token fund to pay for creation fee
     {
-      uluna: lunaJobRewardAndCreationFee,
+      uluna: Big(jobRewardAndCreationFee).add(Big(swapAmount)).toString(),
     }
   );
 
-  const astroportCw20SwapHookMsg = {
+  const astroportSwapMsg = {
     execute_swap_operations: {
       max_spread: maxSpread,
       // minimum_receive: expectedReceivedAstroAmount,
@@ -91,13 +67,13 @@ const run = async () => {
         {
           astro_swap: {
             ask_asset_info: {
-              native_token: {
-                denom: CHAIN_DENOM,
+              token: {
+                contract_addr: astroTokenAddress,
               },
             },
             offer_asset_info: {
-              token: {
-                contract_addr: astroTokenAddress,
+              native_token: {
+                denom: CHAIN_DENOM,
               },
             },
           },
@@ -105,38 +81,33 @@ const run = async () => {
       ],
     },
   };
-  const astroportCw20SwapMsg = {
-    send: {
-      contract: astroportRouterAddress,
-      amount: astroSwapAmount,
-      msg: toBase64(astroportCw20SwapHookMsg),
-    },
-  };
-  const cw20Swap = {
+
+  const swap = {
     wasm: {
       execute: {
-        contract_addr: astroTokenAddress,
-        msg: toBase64(astroportCw20SwapMsg),
-        funds: [],
+        contract_addr: astroportRouterAddress,
+        msg: toBase64(astroportSwapMsg),
+        funds: [{ denom: CHAIN_DENOM, amount: swapAmount }],
       },
     },
   };
-  const cw20SwapJsonString = JSON.stringify(cw20Swap);
+
+  const swapJsonString = JSON.stringify(swap);
 
   const astroportSimulateSwapMsg = {
     simulate_swap_operations: {
-      offer_amount: astroSwapAmount,
+      offer_amount: swapAmount,
       operations: [
         {
           astro_swap: {
             ask_asset_info: {
-              native_token: {
-                denom: CHAIN_DENOM,
+              token: {
+                contract_addr: astroTokenAddress,
               },
             },
             offer_asset_info: {
-              token: {
-                contract_addr: astroTokenAddress,
+              native_token: {
+                denom: CHAIN_DENOM,
               },
             },
           },
@@ -145,7 +116,7 @@ const run = async () => {
     },
   };
 
-  const jobVarName = "luna-astro-price-10ASTRO-receive-how-much-LUNA";
+  const jobVarName = "luna-astro-price-10LUNA-receive-how-much-ASTRO";
   const jobVar = {
     query: {
       // kind: 'int', // uint, amount, decimal are all allowed
@@ -174,7 +145,7 @@ const run = async () => {
           ref: `$warp.variable.${jobVarName}`,
         },
         right: {
-          simple: expectedReceivedLunaAmount,
+          simple: expectedReceivedAstroAmount,
         },
       },
     },
@@ -187,18 +158,14 @@ const run = async () => {
       labels: [],
       recurring: false,
       requeue_on_evict: false,
-      reward: lunaJobReward,
+      reward: jobReward,
       condition: condition,
-      msgs: [cw20SwapJsonString],
+      msgs: [swapJsonString],
       vars: [jobVar],
     },
   });
 
-  createSignBroadcastCatch(wallet, [
-    increaseAllowance,
-    createWarpAccountIfNotExistAndFundAccount,
-    createJob,
-  ]);
+  createSignBroadcastCatch(wallet, [createWarpAccountIfNotExistAndFundAccount, createJob]);
 };
 
 run();
