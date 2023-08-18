@@ -1,6 +1,8 @@
 # cosmos-examples
 
-List of examples interacting with Cosmos SDK native modules (e.g. send native token) and CosmWasm contracts using [feather.js](https://github.com/terra-money/feather.js).
+List of examples interacting with Cosmos SDK native modules (e.g. send native token) and CosmWasm contracts using [feather.js](https://github.com/terra-money/feather.js). If you are using cosmjs, osmojs, sei-js, injective-ts or any typescript SDK for Cosmos SDK chains, it should all be similar to feather.js.
+
+***These examples are not meant to be used for production, it's meant for educational purpose and not guaranteed to work all the time as we sometimes build on developing branch of the contract***
 
 ## guide
 
