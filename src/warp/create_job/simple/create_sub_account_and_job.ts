@@ -52,13 +52,13 @@ const run = async () => {
     },
   };
 
-  const createJobAccountAndJob = new MsgExecuteContract(
+  const createSubAccountAndJob = new MsgExecuteContract(
     senderAddress,
     warpControllerAddress,
     {
       create_account_and_job: {
-        name: "simple_send_luna_job_to_test_create_job_account_and_job_in_one_msg",
-        description: "test create_job_account_and_job in one msg",
+        name: "simple_send_luna_job_to_test_create_sub_account_and_job_in_one_msg",
+        description: "test create_sub_account_and_job in one msg",
         labels: [],
         recurring: false,
         requeue_on_evict: false,
@@ -66,13 +66,13 @@ const run = async () => {
         condition: JSON.stringify(condition),
         msgs: JSON.stringify([JSON.stringify(bankSend)]),
         vars: JSON.stringify([]),
-        is_job_account: true,
+        is_sub_account: true,
       },
     },
     { uluna: swapAmountPlusFee }
   );
 
-  createSignBroadcastCatch(wallet1, [createJobAccountAndJob]);
+  createSignBroadcastCatch(wallet1, [createSubAccountAndJob]);
 };
 
 run();

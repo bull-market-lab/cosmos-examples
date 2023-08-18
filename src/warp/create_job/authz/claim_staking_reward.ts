@@ -9,7 +9,7 @@ import {
   getLCD,
   getMnemonicKey,
   getWallet,
-  getWarpAccountAddress,
+  getWarpDefaultAccountAddress,
   getWarpJobCreationFeePercentage,
   toBase64FromBinary,
 } from "../../../util";
@@ -32,7 +32,7 @@ const run = async () => {
   const claimStartTime = String(Math.floor(Date.now() / 1000));
 
   const warpCreationFeePercentages = await getWarpJobCreationFeePercentage(lcd);
-  const warpAccountAddress = await getWarpAccountAddress(lcd, myAddress);
+  const warpAccountAddress = await getWarpDefaultAccountAddress(lcd, myAddress);
 
   const jobReward = (1_000_000).toString();
   const jobRewardAndCreationFee = Big(jobReward)

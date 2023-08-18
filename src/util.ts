@@ -103,7 +103,10 @@ export const printAxiosError = (e: any) => {
   }
 };
 
-export const getWarpAccountAddress = async (lcd: LCDClient, owner: string): Promise<string> => {
+export const getWarpDefaultAccountAddress = async (
+  lcd: LCDClient,
+  owner: string
+): Promise<string> => {
   const warpControllerAddress = WARP_CONTROLLER_ADDRESS!;
   const warpAccount = await wasmContractQueryCatch(lcd, warpControllerAddress, {
     query_account: {

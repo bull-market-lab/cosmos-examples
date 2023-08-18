@@ -1,4 +1,4 @@
-import { MsgExecuteContract } from "@terra-money/feather.js";
+import { MsgExecuteContract, MsgInstantiateContract } from "@terra-money/feather.js";
 import { CHAIN_DENOM, CHAIN_PREFIX, WARP_CONTROLLER_ADDRESS } from "../../env";
 import {
   createSignBroadcastCatch,
@@ -48,6 +48,22 @@ const run = async () => {
     executeCreateSubAccountMsg
   );
 
+  // createSignBroadcastCatch(wallet, [createAccount]);
   createSignBroadcastCatch(wallet, [createAccount, createSubAccount]);
+
+  // const initAccount = new MsgInstantiateContract(
+  //   myAddress,
+  //   myAddress,
+  //   77,
+  //   {
+  //     owner: myAddress,
+  //     // funds: [],
+  //     // job_id: "0",
+  //     msgs: "[]",
+  //   },
+  //   {},
+  //   "init account manually",
+  // )
+  // createSignBroadcastCatch(wallet, [initAccount]);
 };
 run();

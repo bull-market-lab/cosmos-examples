@@ -8,7 +8,7 @@ import {
   getLCD,
   getMnemonicKey,
   getWallet,
-  getWarpAccountAddress,
+  getWarpDefaultAccountAddress,
 } from "../util";
 import { CHAIN_PREFIX } from "../env";
 
@@ -31,7 +31,7 @@ const grant = async () => {
   const grantGeneric = new AuthorizationGrant(genericAuthorization, expiration);
 
   // grant my warp account access to withdraw delegator reward on behalf of granter
-  const warpAccount = await getWarpAccountAddress(lcd, granter);
+  const warpAccount = await getWarpDefaultAccountAddress(lcd, granter);
   grantee = warpAccount;
   const grantGenericAuthorizationMsg = new MsgGrantAuthorization(granter, grantee, grantGeneric);
 

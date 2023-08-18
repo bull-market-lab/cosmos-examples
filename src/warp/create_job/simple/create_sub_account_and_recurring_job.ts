@@ -166,12 +166,12 @@ const run = async () => {
     },
   };
 
-  const createJobAccountAndRecurringJob = new MsgExecuteContract(
+  const createSubAccountAndRecurringJob = new MsgExecuteContract(
     senderAddress,
     warpControllerAddress,
     {
       create_account_and_job: {
-        name: "recurring_payment_using_job_account",
+        name: "recurring_payment_using_sub_account",
         description: "recurring payment job using job account",
         labels: [],
         recurring: true,
@@ -181,7 +181,7 @@ const run = async () => {
         terminate_condition: JSON.stringify(terminateCondition),
         msgs: JSON.stringify([JSON.stringify(bankSend)]),
         vars: JSON.stringify([jobVarNextExecution, jobVarAlreadyRunCounter]),
-        is_job_account: true,
+        is_sub_account: true,
       },
     },
     {
@@ -189,7 +189,7 @@ const run = async () => {
     }
   );
 
-  createSignBroadcastCatch(wallet1, [createJobAccountAndRecurringJob]);
+  createSignBroadcastCatch(wallet1, [createSubAccountAndRecurringJob]);
 };
 
 run();
