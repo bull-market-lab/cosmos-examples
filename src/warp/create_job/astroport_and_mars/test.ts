@@ -7,7 +7,7 @@ import {
   getWallet,
   getWarpJobCreationFeePercentage,
   toBase64,
-  wasmContractQueryCatch,
+  queryWasmContractWithCatch,
 } from "../../../util";
 import {
   CHAIN_DENOM,
@@ -237,7 +237,7 @@ const run = async () => {
     },
   };
 
-  wasmContractQueryCatch(lcd, warpResolverAddress, {
+  queryWasmContractWithCatch(lcd, warpResolverAddress, {
     query_validate_job_creation: {
       condition: JSON.stringify(condition),
       // terminate_condition: data.terminate_condition.clone(),

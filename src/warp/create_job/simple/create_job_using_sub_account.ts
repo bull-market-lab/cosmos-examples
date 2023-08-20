@@ -7,7 +7,7 @@ import {
   getWallet,
   getWarpDefaultAccountAddress,
   getWarpJobCreationFeePercentage,
-  wasmContractQueryCatch,
+  getWarpFirstFreeSubAccountAddress,
 } from "../../../util";
 import { CHAIN_PREFIX, WARP_CONTROLLER_ADDRESS } from "../../../env";
 
@@ -38,15 +38,9 @@ const run = async () => {
     .toString();
   const swapAmountPlusFee = Big(swapAmount).add(lunaJobFee).toString();
 
-  const warpDefaultAccount = await getWarpDefaultAccountAddress(lcd, senderAddress);
-  // @ts-ignore
-  const freeSubAccountAddress: string = (
-    await wasmContractQueryCatch(lcd, warpDefaultAccount, {
-      query_first_free_sub_account: {},
-    })
-  ).addr;
+  const freeSubAccountAddress = await getWarpFirstFreeSubAccountAddress(lcd, senderAddress);
 
-  const bankSend = new MsgSend(wallet1.key.accAddress(CHAIN_PREFIX), freeSubAccountAddress, {
+  const bankSend = new MsgSend(senderAddress, freeSubAccountAddress, {
     uluna: swapAmountPlusFee,
   });
 

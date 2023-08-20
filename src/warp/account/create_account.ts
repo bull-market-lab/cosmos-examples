@@ -49,6 +49,7 @@ const run = async () => {
   );
 
   // createSignBroadcastCatch(wallet, [createAccount]);
+  // create default account and sub account
   createSignBroadcastCatch(wallet, [createAccount, createSubAccount]);
 
   // const initAccount = new MsgInstantiateContract(

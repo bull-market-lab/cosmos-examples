@@ -7,7 +7,7 @@ import {
   getWallet,
   getWarpDefaultAccountAddress,
   getWarpJobCreationFeePercentage,
-  wasmContractQueryCatch,
+  queryWasmContractWithCatch,
 } from "../../../util";
 import { CHAIN_PREFIX, WARP_CONTROLLER_ADDRESS } from "../../../env";
 
@@ -41,7 +41,7 @@ const run = async () => {
   const warpDefaultAccount = await getWarpDefaultAccountAddress(lcd, senderAddress);
   //   // @ts-ignore
   //   const freeSubAccountAddress: string = (
-  //     await wasmContractQueryCatch(lcd, warpDefaultAccount, {
+  //     await queryWasmContractWithCatch(lcd, warpDefaultAccount, {
   //       query_first_free_sub_account: {},
   //     })
   //   ).addr;

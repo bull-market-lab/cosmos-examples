@@ -108,7 +108,7 @@ export const getWarpDefaultAccountAddress = async (
   owner: string
 ): Promise<string> => {
   const warpControllerAddress = WARP_CONTROLLER_ADDRESS!;
-  const warpAccount = await wasmContractQueryCatch(lcd, warpControllerAddress, {
+  const warpAccount = await queryWasmContractWithCatch(lcd, warpControllerAddress, {
     query_account: {
       owner: owner,
     },
@@ -117,16 +117,28 @@ export const getWarpDefaultAccountAddress = async (
   return warpAccount.account.account;
 };
 
+export const getWarpFirstFreeSubAccountAddress = async (
+  lcd: LCDClient,
+  owner: string
+): Promise<string> => {
+  const warpDefaultAccountAddress = await getWarpDefaultAccountAddress(lcd, owner);
+  const warpFreeSubAccount = await queryWasmContractWithCatch(lcd, warpDefaultAccountAddress, {
+    query_first_free_sub_account: {},
+  });
+  // @ts-ignore
+  return warpFreeSubAccount.addr;
+};
+
 export const getWarpJobCreationFeePercentage = async (lcd: LCDClient): Promise<string> => {
   const warpControllerAddress = WARP_CONTROLLER_ADDRESS!;
-  const warpConfig = await wasmContractQueryCatch(lcd, warpControllerAddress, {
+  const warpConfig = await queryWasmContractWithCatch(lcd, warpControllerAddress, {
     query_config: {},
   });
   // @ts-ignore
   return warpConfig.config.creation_fee_percentage;
 };
 
-export const wasmContractQueryCatch = async (
+export const queryWasmContractWithCatch = async (
   lcd: LCDClient,
   contractAddress: string,
   query: object
