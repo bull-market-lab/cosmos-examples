@@ -14,7 +14,7 @@ Every example is a runnable typescript script, take a look at `package.json`  to
 
 ## Projects covered
 
-### [authz](https://docs.terra.money/develop/module-specifications/spec-authz)
+### [Authz](https://docs.terra.money/develop/module-specifications/spec-authz)
 
 Authz is a cosmos sdk module that allows one account (granter) to grant another account (grantee) to do specified tx on behalf of it.
 

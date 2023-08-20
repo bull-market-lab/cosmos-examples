@@ -58,6 +58,7 @@
     "warp-create-account": "ts-node src/warp/account/create_account.ts",
     "warp-create-account-with-funds": "ts-node src/warp/account/create_account_with_funds.ts",
     "warp-deposit-account": "ts-node src/warp/account/deposit_account.ts",
+    "warp-deposit-account-without-sdk": "ts-node src/warp/account/deposit_account_without_sdk.ts",
     "warp-withdraw-account": "ts-node src/warp/account/withdraw_account.ts",
     "warp-withdraw-account-without-sdk": "ts-node src/warp/account/withdraw_account_without_sdk.ts",
     "warp-authz-claim-staking-reward-from-account": "ts-node src/warp/account/execute_authz_from_account.ts",
