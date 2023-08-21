@@ -1,13 +1,14 @@
 import Big from "big.js";
 import { MsgExecuteContract } from "@terra-money/feather.js";
 import {
+  calculateWarpProtocolFeeForOneTimeJob,
   createSignBroadcastCatch,
   getLCD,
   getMnemonicKey,
   getWallet,
-  getWarpJobCreationFeePercentage,
 } from "../../../util";
 import { CHAIN_PREFIX, WARP_CONTROLLER_ADDRESS } from "../../../env";
+import { DEFAULT_JOB_REWARD } from "../../../constant";
 
 const lcd = getLCD();
 
@@ -27,15 +28,7 @@ const warpControllerAddress = WARP_CONTROLLER_ADDRESS!;
 const run = async () => {
   const swapAmount = (100_000).toString();
 
-  const jobReward = (50_000).toString();
-  // creation fee + reward + potential eviction fee
-  const warpCreationFeePercentages = await getWarpJobCreationFeePercentage(lcd);
-  const lunaJobFee = Big(jobReward)
-    .mul(Big(warpCreationFeePercentages).add(100).div(100))
-    // .add(50_000) // eviction fee 0.05
-    .toString();
-
-  const swapAmountPlusFee = Big(swapAmount).add(lunaJobFee).toString();
+  const warpProtocolFee = await calculateWarpProtocolFeeForOneTimeJob();
 
   const bankSend = {
     bank: {
@@ -65,13 +58,13 @@ const run = async () => {
         labels: [],
         recurring: false,
         requeue_on_evict: false,
-        reward: jobReward,
+        reward: DEFAULT_JOB_REWARD,
         condition: JSON.stringify(condition),
         msgs: JSON.stringify([JSON.stringify(bankSend)]),
         vars: JSON.stringify([]),
       },
     },
-    { uluna: swapAmountPlusFee }
+    { uluna: Big(swapAmount).add(warpProtocolFee).toString() }
   );
 
   createSignBroadcastCatch(wallet1, [createAccountAndJob]);

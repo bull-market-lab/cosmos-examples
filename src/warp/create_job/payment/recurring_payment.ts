@@ -1,13 +1,14 @@
 import Big from "big.js";
 import { MsgExecuteContract } from "@terra-money/feather.js";
 import {
+  calculateWarpProtocolFeeForRecurringJob,
   createSignBroadcastCatch,
   getLCD,
   getMnemonicKey,
   getWallet,
-  getWarpJobCreationFeePercentage,
 } from "../../../util";
 import { CHAIN_PREFIX, WARP_CONTROLLER_ADDRESS } from "../../../env";
+import { DEFAULT_JOB_REWARD } from "../../../constant";
 
 const lcd = getLCD();
 
@@ -36,36 +37,16 @@ const run = async () => {
   // round down to 3 decimal places to avoid running out of fund
   const singlePaymentAmount = Big(totalPaymentAmount).div(totalPaymentCount).round(3, 0).toString();
 
-  const jobReward = (500_000).toString();
-  // creation fee + reward + potential eviction fee
-  const warpCreationFeePercentages = await getWarpJobCreationFeePercentage(lcd);
-  const lunaJobFee = Big(jobReward)
-    .mul(Big(warpCreationFeePercentages).add(100).div(100))
-    // .add(50_000) // eviction fee 0.05
-    .mul(totalPaymentCount)
-    .toString();
-
-  const createWarpAccountIfNotExistAndFundAccount = new MsgExecuteContract(
-    senderAddress,
-    warpControllerAddress,
-    {
-      create_account: {},
-    },
-    {
-      uluna: Big(lunaJobFee).add(Big(totalPaymentAmount)).toString(),
-    }
+  const warpProtocolFee = await calculateWarpProtocolFeeForRecurringJob(
+    0,
+    DEFAULT_JOB_REWARD,
+    paymentInterval,
+    totalPaymentCount
   );
 
-  const bankSend = {
-    bank: {
-      send: {
-        amount: [{ denom: "uluna", amount: singlePaymentAmount }],
-        to_address: receiverAddress,
-      },
-    },
-  };
+  /// =========== var ===========
 
-  const jobVarNameNextExecution = "next-payment-execution";
+  const jobVarNameNextExecution = "next_payment_execution";
   const jobVarNextExecution = {
     static: {
       kind: "uint", // NOTE: it's better to use uint instead of timestamp to keep it consistent with condition
@@ -90,10 +71,11 @@ const run = async () => {
         // on_error: {
         // }
       },
+      encode: false,
     },
   };
 
-  const jobVarNameAlreadyRunCounter = "payment-already-made-counter";
+  const jobVarNameAlreadyRunCounter = "payment_already_made_counter";
   const jobVarAlreadyRunCounter = {
     static: {
       kind: "int",
@@ -118,8 +100,11 @@ const run = async () => {
         // on_error: {
         // }
       },
+      encode: false,
     },
   };
+
+  /// =========== condition ===========
 
   const condition = {
     and: [
@@ -168,6 +153,29 @@ const run = async () => {
     },
   };
 
+  /// =========== job msgs ===========
+  const bankSend = {
+    bank: {
+      send: {
+        amount: [{ denom: "uluna", amount: singlePaymentAmount }],
+        to_address: receiverAddress,
+      },
+    },
+  };
+
+  /// =========== cosmos msgs ===========
+
+  const createWarpAccountIfNotExistAndFundAccount = new MsgExecuteContract(
+    senderAddress,
+    warpControllerAddress,
+    {
+      create_account: {},
+    },
+    {
+      uluna: Big(warpProtocolFee).add(Big(totalPaymentAmount)).toString(),
+    }
+  );
+
   const createJob = new MsgExecuteContract(senderAddress, warpControllerAddress, {
     create_job: {
       name: "recurring_payment",
@@ -175,18 +183,15 @@ const run = async () => {
       labels: [],
       recurring: true,
       requeue_on_evict: true,
-      reward: jobReward,
+      reward: DEFAULT_JOB_REWARD,
+      vars: JSON.stringify([jobVarNextExecution, jobVarAlreadyRunCounter]),
       condition: JSON.stringify(condition),
-      // terminate_condition: JSON.stringify(terminateCondition),
+      terminate_condition: JSON.stringify(terminateCondition),
       msgs: JSON.stringify([JSON.stringify(bankSend)]),
-      vars: JSON.stringify([
-        // JSON.stringify(jobVarNextExecution),
-        // JSON.stringify(jobVarAlreadyRunCounter),
-        jobVarNextExecution,
-        jobVarAlreadyRunCounter,
-      ]),
     },
   });
+
+  /// =========== sign and broadcast ===========
 
   createSignBroadcastCatch(wallet1, [createWarpAccountIfNotExistAndFundAccount, createJob]);
 };

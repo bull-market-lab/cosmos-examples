@@ -2,15 +2,15 @@
 
 List of examples interacting with Cosmos SDK native modules (e.g. send native token) and CosmWasm contracts using [feather.js](https://github.com/terra-money/feather.js). If you are using cosmjs, osmojs, sei-js, injective-ts or any typescript SDK for Cosmos SDK chains, it should all be similar to feather.js.
 
-***These examples are not meant to be used for production, it's meant for educational purpose and not guaranteed to work all the time as we sometimes build on developing branch of the contract***
+**_These examples are not meant to be used for production, it's meant for educational purpose and not guaranteed to work all the time as we sometimes build on developing branch of the contract_**
 
-## guide
+## Guide
 
 First run `npm i` to install the dependency.
 
 Create `.env` file from `example.env` and fill accordingly, please remember don't put your mainnet seed phrase!
 
-Every example is a runnable typescript script, take a look at `package.json`  to find all available examples, run `npm run example-you-want` (e.g. `npm run warp-create-account`) to run it.
+Every example is a runnable typescript script, take a look at `package.json` to find all available examples or just explore the `src` directory, run `npm run example-you-want` (e.g. `npm run warp-create-account`) to run the example.
 
 ## Projects covered
 
@@ -46,8 +46,25 @@ Create Warp job that acts as limit order or DCA.
   - swap from native through router
   - swap from cw20 through router
 - DCA (Dollar-Cost Averaging)
-  - swap 1 token to another recursively (e.g. swap 1 LUNA to ASTRO at market price everyday for 10 days)
+  - regular DCA: swap 1 token to another recursively (e.g. swap 1 LUNA to ASTRO at market price everyday for 10 days)
     - currently there is a limitation on DCA, after the last order is executed, we still create a job (because we cannot update `recurring` after we set it to `true` in initial job), but this job will be stuck at pending status forever as counter condition will never be satisfied. So we will keep paying eviction fee (0.05 LUNA everyday) for this dummy job. Warp team is working on adding a `terminate_fn` so we can update `recurring` to false at last run.
+    - terminate condition is already merged, and will be released to mainnet soon!
+
+### Warp x Osmosis
+
+- limit order: similar to Astroport limit order
+- DCA: similar to Astroport DCA
+
+### Warp x Astroport / Osmosis x Mars
+
+Idea is to put offered token to money market until swap happens so users can earn interest on offered token. This can work on top of any DEX and any money market, here Astroport or Osmosis is the DEX, Mars is the money market.
+
+Technically money market can be replaced with any other delta neutral yield generating protocol (e.g. many perpetual DEX let users deposit token to lend to other traders, similar to a money market, [Levana](https://levana.finance/) is one example that is live in Cosmos).
+
+It's also possible to use the money market on a different chain from the DEX (e.g. DEX use Osmosis, money market use [Umee](https://umee.cc/) or (Nolus)[https://nolus.io/]), but it's easier to do when DEX and money market on the same chain now so we don't need to handle IBC callback.
+
+- yielding bearing limit order (deposit offered token to money market and withdraw when market price meets target price)
+- yielding bearing DCA, similar to yield bearing limit order, offered token will be deposit to money market until used
 
 ### Warp x Enterprise
 

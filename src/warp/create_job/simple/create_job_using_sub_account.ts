@@ -5,11 +5,11 @@ import {
   getLCD,
   getMnemonicKey,
   getWallet,
-  getWarpDefaultAccountAddress,
-  getWarpJobCreationFeePercentage,
   getWarpFirstFreeSubAccountAddress,
+  calculateWarpProtocolFeeForOneTimeJob,
 } from "../../../util";
 import { CHAIN_PREFIX, WARP_CONTROLLER_ADDRESS } from "../../../env";
+import { DEFAULT_JOB_REWARD } from "../../../constant";
 
 const lcd = getLCD();
 
@@ -29,19 +29,12 @@ const warpControllerAddress = WARP_CONTROLLER_ADDRESS!;
 const run = async () => {
   const swapAmount = (100_000).toString();
 
-  const jobReward = (50_000).toString();
-  // creation fee + reward + potential eviction fee
-  const warpCreationFeePercentages = await getWarpJobCreationFeePercentage(lcd);
-  const lunaJobFee = Big(jobReward)
-    .mul(Big(warpCreationFeePercentages).add(100).div(100))
-    // .add(50_000) // eviction fee 0.05
-    .toString();
-  const swapAmountPlusFee = Big(swapAmount).add(lunaJobFee).toString();
+  const warpProtocolFee = await calculateWarpProtocolFeeForOneTimeJob();
 
-  const freeSubAccountAddress = await getWarpFirstFreeSubAccountAddress(lcd, senderAddress);
+  const subAccountAddress = await getWarpFirstFreeSubAccountAddress(lcd, senderAddress);
 
-  const bankSend = new MsgSend(senderAddress, freeSubAccountAddress, {
-    uluna: swapAmountPlusFee,
+  const bankSend = new MsgSend(senderAddress, subAccountAddress, {
+    uluna: Big(swapAmount).add(warpProtocolFee).toString(),
   });
 
   const bankSendMsg = {
@@ -69,12 +62,12 @@ const run = async () => {
       labels: [],
       recurring: false,
       requeue_on_evict: false,
-      reward: jobReward,
+      reward: DEFAULT_JOB_REWARD,
       condition: JSON.stringify(condition),
       msgs: JSON.stringify([JSON.stringify(bankSendMsg)]),
       vars: JSON.stringify([]),
       // set account if we want to use sub account
-      account: freeSubAccountAddress,
+      account: subAccountAddress,
     },
   });
 

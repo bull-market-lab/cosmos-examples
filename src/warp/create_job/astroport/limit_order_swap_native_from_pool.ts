@@ -1,11 +1,11 @@
 import Big from "big.js";
 import { MsgExecuteContract } from "@terra-money/feather.js";
 import {
+  calculateWarpProtocolFeeForOneTimeJob,
   createSignBroadcastCatch,
   getLCD,
   getMnemonicKey,
   getWallet,
-  getWarpJobCreationFeePercentage,
   toBase64,
 } from "../../../util";
 import {
@@ -38,21 +38,61 @@ const run = async () => {
   const swapAmount = (1_000_000).toString();
   const jobReward = (1_000_000).toString();
 
-  const warpCreationFeePercentages = await getWarpJobCreationFeePercentage(lcd);
-  const jobRewardAndCreationFee = Big(jobReward)
-    .mul(Big(warpCreationFeePercentages).add(100).div(100))
-    .toString();
+  const warpProtocolFee = await calculateWarpProtocolFeeForOneTimeJob();
 
-  const createWarpAccountIfNotExistAndFundAccount = new MsgExecuteContract(
-    myAddress,
-    warpControllerAddress,
-    {
-      create_account: {},
+  /// =========== var ===========
+
+  const astroportSimulateNativeSwapMsg = {
+    simulation: {
+      offer_asset: {
+        info: {
+          native_token: {
+            denom: CHAIN_DENOM,
+          },
+        },
+        amount: swapAmount,
+      },
     },
-    {
-      uluna: Big(jobRewardAndCreationFee).add(Big(swapAmount)).toString(),
-    }
-  );
+  };
+  const jobVarName = "luna_astro_price";
+  const jobVar = {
+    query: {
+      // kind: 'int', // uint, amount, decimal are all allowed
+      kind: "amount", // only int is not allowed since it expects result to be number, in fact result is string
+      name: jobVarName,
+      init_fn: {
+        query: {
+          wasm: {
+            smart: {
+              msg: toBase64(astroportSimulateNativeSwapMsg),
+              contract_addr: astroportAstroLunaPairAddress,
+            },
+          },
+        },
+        selector: "$.return_amount",
+      },
+      reinitialize: false,
+      encode: false,
+    },
+  };
+
+  /// =========== condition ===========
+
+  const condition = {
+    expr: {
+      decimal: {
+        op: "gte",
+        left: {
+          ref: `$warp.variable.${jobVarName}`,
+        },
+        right: {
+          simple: expectedReceivedAstroAmount,
+        },
+      },
+    },
+  };
+
+  /// =========== job msgs ===========
 
   const astroportNativeSwapMsg = {
     swap: {
@@ -86,55 +126,18 @@ const run = async () => {
       },
     },
   };
-  const nativeSwapJsonString = JSON.stringify(nativeSwap);
 
-  const astroportSimulateNativeSwapMsg = {
-    simulation: {
-      offer_asset: {
-        info: {
-          native_token: {
-            denom: CHAIN_DENOM,
-          },
-        },
-        amount: swapAmount,
-      },
+  /// =========== cosmos msgs ===========
+  const createWarpAccountIfNotExistAndFundAccount = new MsgExecuteContract(
+    myAddress,
+    warpControllerAddress,
+    {
+      create_account: {},
     },
-  };
-
-  const jobVarName = "luna-astro-price";
-  const jobVar = {
-    query: {
-      // kind: 'int', // uint, amount, decimal are all allowed
-      kind: "amount", // only int is not allowed since it expects result to be number, in fact result is string
-      name: jobVarName,
-      init_fn: {
-        query: {
-          wasm: {
-            smart: {
-              msg: toBase64(astroportSimulateNativeSwapMsg),
-              contract_addr: astroportAstroLunaPairAddress,
-            },
-          },
-        },
-        selector: "$.return_amount",
-      },
-      reinitialize: false,
-    },
-  };
-
-  const condition = {
-    expr: {
-      decimal: {
-        op: "gte",
-        left: {
-          ref: `$warp.variable.${jobVarName}`,
-        },
-        right: {
-          simple: expectedReceivedAstroAmount,
-        },
-      },
-    },
-  };
+    {
+      uluna: Big(warpProtocolFee).add(Big(swapAmount)).toString(),
+    }
+  );
 
   const createJob = new MsgExecuteContract(myAddress, warpControllerAddress, {
     create_job: {
@@ -145,10 +148,12 @@ const run = async () => {
       requeue_on_evict: false,
       reward: jobReward,
       condition: condition,
-      msgs: [nativeSwapJsonString],
+      msgs: [JSON.stringify(nativeSwap)],
       vars: [jobVar],
     },
   });
+
+  /// =========== sign and broadcast ===========
 
   createSignBroadcastCatch(wallet, [createWarpAccountIfNotExistAndFundAccount, createJob]);
 };
