@@ -113,6 +113,7 @@ const run = async () => {
         selector: "$.amount",
       },
       reinitialize: false,
+      encode: false,
     },
   };
 
@@ -170,6 +171,7 @@ const run = async () => {
         selector: "$.return_amount",
       },
       reinitialize: false,
+      encode: false,
     },
   };
 

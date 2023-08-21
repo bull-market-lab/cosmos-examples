@@ -34,5 +34,6 @@ export const ASTRO_TOKEN_ADDRESS: string | undefined = env.ASTRO_TOKEN_ADDRESS;
 export const ASTROPORT_ROUTER_ADDRESS: string | undefined = env.ASTROPORT_ROUTER_ADDRESS;
 
 export const MARS_RED_BANK_ADDRESS: string | undefined = env.MARS_RED_BANK_ADDRESS;
+export const OSMOSIS_SWAPPER_BY_MARS: string | undefined = env.OSMOSIS_SWAPPER_BY_MARS;
 
 export const USDC_DENOM: string | undefined = env.USDC_DENOM;

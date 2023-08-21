@@ -1,19 +1,19 @@
-import Big from "big.js";
 import {
   MsgExecAuthorized,
   MsgExecuteContract,
   MsgWithdrawDelegatorReward,
 } from "@terra-money/feather.js";
 import {
+  calculateWarpProtocolFeeForOneTimeJob,
   createSignBroadcastCatch,
   getLCD,
   getMnemonicKey,
   getWallet,
   getWarpDefaultAccountAddress,
-  getWarpJobCreationFeePercentage,
   toBase64FromBinary,
 } from "../../../util";
 import { CHAIN_PREFIX, VALIDATOR_ADDRESS, WARP_CONTROLLER_ADDRESS } from "../../../env";
+import { DEFAULT_JOB_REWARD } from "../../../constant";
 
 const mnemonicKey = getMnemonicKey();
 const lcd = getLCD();
@@ -31,43 +31,13 @@ const run = async () => {
   // initial value is current timestamp
   const claimStartTime = String(Math.floor(Date.now() / 1000));
 
-  const warpCreationFeePercentages = await getWarpJobCreationFeePercentage(lcd);
   const warpAccountAddress = await getWarpDefaultAccountAddress(lcd, myAddress);
 
-  const jobReward = (1_000_000).toString();
-  const jobRewardAndCreationFee = Big(jobReward)
-    .mul(Big(warpCreationFeePercentages).add(100).div(100))
-    .toString();
+  const warpProtocolFee = await calculateWarpProtocolFeeForOneTimeJob();
 
-  const createWarpAccountIfNotExistAndFundAccount = new MsgExecuteContract(
-    myAddress,
-    warpControllerAddress,
-    {
-      create_account: {},
-    },
-    {
-      uluna: jobRewardAndCreationFee,
-    }
-  );
+  /// =========== var ===========
 
-  // TODO: we may need to switch to amino manually? not sure if feather.js handles the conversion automatically
-  // ledger wallet only works with amino encoding
-  const grantee = warpAccountAddress;
-  const withdrawDelegatorRewardMsg: MsgWithdrawDelegatorReward[] = [
-    new MsgWithdrawDelegatorReward(myAddress, VALIDATOR_ADDRESS),
-  ];
-  const execAuthorizedMsg = new MsgExecAuthorized(grantee, [...withdrawDelegatorRewardMsg]);
-
-  const authzClaimStakingReward = {
-    stargate: {
-      type_url: "/cosmos.authz.v1beta1.MsgExec",
-      value: toBase64FromBinary(execAuthorizedMsg.packAny().value),
-    },
-  };
-
-  const authzClaimStakingRewardJsonString = JSON.stringify(authzClaimStakingReward);
-
-  const jobVarNameNextExecution = "next-claim-time";
+  const jobVarNameNextExecution = "next_claim_time";
   const jobVarNextExecution = {
     static: {
       kind: "uint", // NOTE: it's better to use uint instead of timestamp to keep it consistent with condition
@@ -92,8 +62,11 @@ const run = async () => {
         // on_error: {
         // }
       },
+      encode: false,
     },
   };
+
+  /// =========== condition ===========
 
   const condition = {
     expr: {
@@ -111,6 +84,36 @@ const run = async () => {
     },
   };
 
+  /// =========== job msgs ===========
+
+  // TODO: we may need to switch to amino manually? not sure if feather.js handles the conversion automatically
+  // ledger wallet only works with amino encoding
+  const grantee = warpAccountAddress;
+  const withdrawDelegatorRewardMsg: MsgWithdrawDelegatorReward[] = [
+    new MsgWithdrawDelegatorReward(myAddress, VALIDATOR_ADDRESS),
+  ];
+  const execAuthorizedMsg = new MsgExecAuthorized(grantee, [...withdrawDelegatorRewardMsg]);
+
+  const authzClaimStakingReward = {
+    stargate: {
+      type_url: "/cosmos.authz.v1beta1.MsgExec",
+      value: toBase64FromBinary(execAuthorizedMsg.packAny().value),
+    },
+  };
+
+  /// =========== cosmos msgs ===========
+
+  const createWarpAccountIfNotExistAndFundAccount = new MsgExecuteContract(
+    myAddress,
+    warpControllerAddress,
+    {
+      create_account: {},
+    },
+    {
+      uluna: warpProtocolFee,
+    }
+  );
+
   const createJob = new MsgExecuteContract(myAddress, warpControllerAddress, {
     create_job: {
       name: "authz_recurring_claim_staking_reward_via_authz",
@@ -118,12 +121,14 @@ const run = async () => {
       labels: [],
       recurring: true,
       requeue_on_evict: false,
-      reward: jobReward,
+      reward: DEFAULT_JOB_REWARD,
       condition: condition,
-      msgs: [authzClaimStakingRewardJsonString],
+      msgs: [JSON.stringify(authzClaimStakingReward)],
       vars: [jobVarNextExecution],
     },
   });
+
+  /// =========== sign and broadcast ===========
 
   createSignBroadcastCatch(wallet, [createWarpAccountIfNotExistAndFundAccount, createJob]);
 };

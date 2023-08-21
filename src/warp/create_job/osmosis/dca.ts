@@ -1,20 +1,24 @@
-import Big from "big.js";
-import { MsgExecuteContract } from "@terra-money/feather.js";
+import { MsgExecuteContract, MsgSend } from "@terra-money/feather.js";
 import {
   calculateWarpProtocolFeeForRecurringJob,
   createSignBroadcastCatch,
   getLCD,
   getMnemonicKey,
   getWallet,
+  getWarpFirstFreeSubAccountAddress,
+  queryWasmContractWithCatch,
   toBase64,
 } from "../../../util";
 import {
-  ASTRO_LUNA_PAIR_ADDRESS,
+  OSMOSIS_SWAPPER_BY_MARS,
   CHAIN_DENOM,
   CHAIN_PREFIX,
+  USDC_DENOM,
   WARP_CONTROLLER_ADDRESS,
+  WARP_RESOLVER_ADDRESS,
 } from "../../../env";
 import { DEFAULT_JOB_REWARD } from "../../../constant";
+import Big from "big.js";
 
 const mnemonicKey = getMnemonicKey();
 const lcd = getLCD();
@@ -23,18 +27,24 @@ const wallet = getWallet(lcd, mnemonicKey);
 // sender
 const myAddress = wallet.key.accAddress(CHAIN_PREFIX);
 
-const astroportAstroLunaPairAddress = ASTRO_LUNA_PAIR_ADDRESS!;
+const osmosisSwapperByMars = OSMOSIS_SWAPPER_BY_MARS!;
 
 const warpControllerAddress = WARP_CONTROLLER_ADDRESS!;
+const warpResolverAddress = WARP_RESOLVER_ADDRESS!;
+
+const usdcDenom = USDC_DENOM!;
 
 const run = async () => {
   // default spread is 0.01 which is 1%
   // maybe i don't need to specify spread in swap msg, as condition already ensure i get the price i want
-  const maxSpread = "0.01";
+  const maxSpread = "0.1";
 
+  // 0.05 USDC
   const totalSwapAmount = (50_000).toString();
 
-  const dcaNumber = (3).toString();
+  const offeredTokenDenom = usdcDenom;
+
+  const dcaNumber = (5).toString();
 
   // 86400 is 1 day in seconds
   // const dcaInterval = 60 * 60 * 24 * 7;
@@ -43,14 +53,13 @@ const run = async () => {
   // initial value is current timestamp
   const dcaStartTime = String(Math.floor(Date.now() / 1000));
 
-  // start immediately
-  const secondsToFirstExecute = 0;
-
   // round down to 3 decimal places to avoid running out of fund
   const singleSwapAmount = Big(totalSwapAmount).div(dcaNumber).round(3, 0).toString();
 
+  const subAccountAddress = await getWarpFirstFreeSubAccountAddress(lcd, myAddress);
+
   const warpProtocolFee = await calculateWarpProtocolFeeForRecurringJob(
-    secondsToFirstExecute,
+    0,
     DEFAULT_JOB_REWARD,
     dcaInterval,
     dcaNumber
@@ -58,7 +67,7 @@ const run = async () => {
 
   /// =========== var ===========
 
-  const jobVarNameNextExecution = "dca_swap_luna_to_astro_next_execution";
+  const jobVarNameNextExecution = "dca_swap_usdc_to_osmo_next_execution";
   const jobVarNextExecution = {
     static: {
       kind: "uint", // NOTE: it's better to use uint instead of timestamp to keep it consistent with condition
@@ -112,6 +121,7 @@ const run = async () => {
         // on_error: {
         // }
       },
+      encode: false,
     },
   };
 
@@ -150,71 +160,94 @@ const run = async () => {
     ],
   };
 
+  const terminateCondition = {
+    expr: {
+      int: {
+        left: {
+          ref: `$warp.variable.${jobVarNameAlreadyRunCounter}`,
+        },
+        op: "gte",
+        right: {
+          simple: dcaNumber,
+        },
+      },
+    },
+  };
+
   /// =========== job msgs ===========
 
-  const astroportNativeSwapMsg = {
-    swap: {
-      offer_asset: {
-        info: {
-          native_token: {
-            denom: CHAIN_DENOM,
-          },
-        },
+  const osmosisNativeSwapMsg = {
+    swap_exact_in: {
+      coin_in: {
+        denom: offeredTokenDenom,
         amount: singleSwapAmount,
       },
-      /*
-      Belief Price + Max Spread
-      If belief_price is provided in combination with max_spread, 
-      the pool will check the difference between the return amount (using belief_price) and the real pool price.
-      The belief_price +/- the max_spread is the range of possible acceptable prices for this swap.
-      */
-      // belief_price: beliefPrice,
-      // max_spread: '0.005',
-      max_spread: maxSpread,
-      // to: '...', // default to sender
-      to: myAddress,
+      denom_out: CHAIN_DENOM,
+      slippage: maxSpread,
     },
   };
   const nativeSwap = {
     wasm: {
       execute: {
-        contract_addr: astroportAstroLunaPairAddress,
-        msg: toBase64(astroportNativeSwapMsg),
-        funds: [{ denom: CHAIN_DENOM, amount: singleSwapAmount }],
+        contract_addr: osmosisSwapperByMars,
+        msg: toBase64(osmosisNativeSwapMsg),
+        funds: [{ denom: offeredTokenDenom, amount: singleSwapAmount }],
       },
     },
   };
 
   /// =========== cosmos msgs ===========
 
-  const createWarpAccountIfNotExistAndFundAccount = new MsgExecuteContract(
-    myAddress,
-    warpControllerAddress,
-    {
-      create_account: {},
-    },
-    {
-      uluna: Big(warpProtocolFee).add(Big(totalSwapAmount)).toString(),
-    }
-  );
+  const cosmosMsgEoaDepositToSubAccount = new MsgSend(myAddress, subAccountAddress, {
+    [offeredTokenDenom]: totalSwapAmount,
+    [CHAIN_DENOM]: warpProtocolFee,
+  });
 
-  const createJob = new MsgExecuteContract(myAddress, warpControllerAddress, {
+  const cosmosMsgCreateJob = new MsgExecuteContract(myAddress, warpControllerAddress, {
     create_job: {
-      name: "astroport_dca_order_luna_to_astro_from_pool",
-      description: "DCA order from Luna to Astro from Astroport Astro-Luna pool",
+      name: "osmosis_dca_order_usdc_to_osmo",
+      description: "DCA order",
       labels: [],
+      account: subAccountAddress,
       recurring: true,
       requeue_on_evict: true,
       reward: DEFAULT_JOB_REWARD,
-      condition: condition,
-      msgs: [JSON.stringify(nativeSwap)],
-      vars: [jobVarNextExecution, jobVarAlreadyRunCounter],
+      vars: JSON.stringify([jobVarAlreadyRunCounter, jobVarNextExecution]),
+      condition: JSON.stringify(condition),
+      terminate_condition: JSON.stringify(terminateCondition),
+      msgs: JSON.stringify([JSON.stringify(nativeSwap)]),
+      // needs to specify assets_to_withdraw as osmosis swapper contract by mars doesn't support transfer swapped token to another address
+      // NOTE: this must not be the asset we are swapping, otherwise it will be withdrawn and follow up jobs will fail
+      assets_to_withdraw: [{ native: CHAIN_DENOM }],
+    },
+  });
+
+  // create a new sub account since we just used the first free sub account
+  // this is optional if user has more free accounts
+  const cosmosMsgCreateNewSubAccount = new MsgExecuteContract(myAddress, warpControllerAddress, {
+    create_account: {
+      is_sub_account: true,
     },
   });
 
   /// =========== sign and broadcast ===========
 
-  createSignBroadcastCatch(wallet, [createWarpAccountIfNotExistAndFundAccount, createJob]);
+  createSignBroadcastCatch(wallet, [
+    cosmosMsgEoaDepositToSubAccount,
+    cosmosMsgCreateJob,
+    cosmosMsgCreateNewSubAccount,
+  ]);
+
+  /// =========== debug ===========
+
+  // queryWasmContractWithCatch(lcd, warpResolverAddress, {
+  //   query_validate_job_creation: {
+  //     vars: JSON.stringify([jobVarAlreadyRunCounter, jobVarNextExecution]),
+  //     condition: JSON.stringify(condition),
+  //     terminate_condition: JSON.stringify(terminateCondition),
+  //     msgs: JSON.stringify([JSON.stringify(nativeSwap)]),
+  //   },
+  // }).then((res) => console.log(res));
 };
 
 run();

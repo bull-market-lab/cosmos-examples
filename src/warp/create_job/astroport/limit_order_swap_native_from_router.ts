@@ -1,11 +1,11 @@
 import Big from "big.js";
 import { MsgExecuteContract } from "@terra-money/feather.js";
 import {
+  calculateWarpProtocolFeeForOneTimeJob,
   createSignBroadcastCatch,
   getLCD,
   getMnemonicKey,
   getWallet,
-  getWarpJobCreationFeePercentage,
   toBase64,
 } from "../../../util";
 import {
@@ -42,21 +42,70 @@ const run = async () => {
 
   const swapAmount = (10_000_000).toString();
   const jobReward = (1_000_000).toString();
-  const warpCreationFeePercentages = await getWarpJobCreationFeePercentage(lcd);
-  const jobRewardAndCreationFee = Big(jobReward)
-    .mul(Big(warpCreationFeePercentages).add(100).div(100))
-    .toString();
+  const warpProtocolFee = await calculateWarpProtocolFeeForOneTimeJob();
 
-  const createWarpAccountIfNotExistAndFundAccount = new MsgExecuteContract(
-    myAddress,
-    warpControllerAddress,
-    {
-      create_account: {},
+  /// =========== var ===========
+
+  const astroportSimulateSwapMsg = {
+    simulate_swap_operations: {
+      offer_amount: swapAmount,
+      operations: [
+        {
+          astro_swap: {
+            ask_asset_info: {
+              token: {
+                contract_addr: astroTokenAddress,
+              },
+            },
+            offer_asset_info: {
+              native_token: {
+                denom: CHAIN_DENOM,
+              },
+            },
+          },
+        },
+      ],
     },
-    {
-      uluna: Big(jobRewardAndCreationFee).add(Big(swapAmount)).toString(),
-    }
-  );
+  };
+  const jobVarName = "luna_astro_price_10LUNA_receive_how_much_ASTRO";
+  const jobVar = {
+    query: {
+      // kind: 'int', // uint, amount, decimal are all allowed
+      kind: "amount", // only int is not allowed since it expects result to be number, in fact result is string
+      name: jobVarName,
+      init_fn: {
+        query: {
+          wasm: {
+            smart: {
+              msg: toBase64(astroportSimulateSwapMsg),
+              contract_addr: astroportRouterAddress,
+            },
+          },
+        },
+        selector: "$.amount",
+      },
+      reinitialize: false,
+      encode: false,
+    },
+  };
+
+  /// =========== condition ===========
+
+  const condition = {
+    expr: {
+      decimal: {
+        op: "gte",
+        left: {
+          ref: `$warp.variable.${jobVarName}`,
+        },
+        right: {
+          simple: expectedReceivedAstroAmount,
+        },
+      },
+    },
+  };
+
+  /// =========== job msgs ===========
 
   const astroportSwapMsg = {
     execute_swap_operations: {
@@ -92,64 +141,18 @@ const run = async () => {
     },
   };
 
-  const swapJsonString = JSON.stringify(swap);
+  /// =========== cosmos msgs ===========
 
-  const astroportSimulateSwapMsg = {
-    simulate_swap_operations: {
-      offer_amount: swapAmount,
-      operations: [
-        {
-          astro_swap: {
-            ask_asset_info: {
-              token: {
-                contract_addr: astroTokenAddress,
-              },
-            },
-            offer_asset_info: {
-              native_token: {
-                denom: CHAIN_DENOM,
-              },
-            },
-          },
-        },
-      ],
+  const createWarpAccountIfNotExistAndFundAccount = new MsgExecuteContract(
+    myAddress,
+    warpControllerAddress,
+    {
+      create_account: {},
     },
-  };
-
-  const jobVarName = "luna-astro-price-10LUNA-receive-how-much-ASTRO";
-  const jobVar = {
-    query: {
-      // kind: 'int', // uint, amount, decimal are all allowed
-      kind: "amount", // only int is not allowed since it expects result to be number, in fact result is string
-      name: jobVarName,
-      init_fn: {
-        query: {
-          wasm: {
-            smart: {
-              msg: toBase64(astroportSimulateSwapMsg),
-              contract_addr: astroportRouterAddress,
-            },
-          },
-        },
-        selector: "$.amount",
-      },
-      reinitialize: false,
-    },
-  };
-
-  const condition = {
-    expr: {
-      decimal: {
-        op: "gte",
-        left: {
-          ref: `$warp.variable.${jobVarName}`,
-        },
-        right: {
-          simple: expectedReceivedAstroAmount,
-        },
-      },
-    },
-  };
+    {
+      uluna: Big(warpProtocolFee).add(Big(swapAmount)).toString(),
+    }
+  );
 
   const createJob = new MsgExecuteContract(myAddress, warpControllerAddress, {
     create_job: {
@@ -160,10 +163,12 @@ const run = async () => {
       requeue_on_evict: false,
       reward: jobReward,
       condition: condition,
-      msgs: [swapJsonString],
+      msgs: [JSON.stringify(swap)],
       vars: [jobVar],
     },
   });
+
+  /// =========== sign and broadcast ===========
 
   createSignBroadcastCatch(wallet, [createWarpAccountIfNotExistAndFundAccount, createJob]);
 };

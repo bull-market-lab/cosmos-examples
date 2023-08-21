@@ -15,6 +15,8 @@ import {
   WARP_CONTROLLER_ADDRESS,
   ASTRO_TOKEN_ADDRESS,
 } from "./env";
+import Big from "big.js";
+import { DAY_IN_SECONDS, DEFAULT_EVICTION_FEE, DEFAULT_JOB_REWARD } from "./constant";
 
 export const getCurrentBlockHeight = async (lcd: LCDClient): Promise<string> => {
   return (await lcd.tendermint.blockInfo(CHAIN_ID)).block.header.height;
@@ -136,6 +138,42 @@ export const getWarpJobCreationFeePercentage = async (lcd: LCDClient): Promise<s
   });
   // @ts-ignore
   return warpConfig.config.creation_fee_percentage;
+};
+
+export const calculateWarpProtocolFeeForOneTimeJob = async (
+  expireInSeconds: number = 1,
+  reward: string = DEFAULT_JOB_REWARD
+): Promise<string> => {
+  const warpCreationFeePercentages = await getWarpJobCreationFeePercentage(getLCD());
+  const creationFee = Big(reward).mul(Big(warpCreationFeePercentages).div(100));
+  // e.g. expireInDays = 2, then eviction fee is 50_000 cause if we don't pay eviction fee, then the job will be evicted after 1 day
+  const evictionFee = Big(DEFAULT_EVICTION_FEE).mul(
+    Math.max(1, Math.ceil(expireInSeconds / DAY_IN_SECONDS)) - 1
+  );
+  return Big(reward).add(creationFee).add(evictionFee).toString();
+};
+
+// e.g. using the default value, the job will be executed 3 times, first time is 1 day after creation, then run again every 2 days
+export const calculateWarpProtocolFeeForRecurringJob = async (
+  secondsToFirstExecute: number = 1,
+  singleExecutionReward: string = DEFAULT_JOB_REWARD,
+  recurringIntervalInSeconds: string = "15",
+  totalRunCount: string = "3"
+): Promise<string> => {
+  const warpCreationFeePercentages = await getWarpJobCreationFeePercentage(getLCD());
+  const creationFee = Big(singleExecutionReward)
+    .mul(warpCreationFeePercentages)
+    .div(100)
+    .mul(totalRunCount);
+  const evictionFee = Big(DEFAULT_EVICTION_FEE).mul(
+    Math.max(1, Math.ceil(secondsToFirstExecute / DAY_IN_SECONDS)) -
+      1 +
+      (Math.max(1, Math.ceil(Number(recurringIntervalInSeconds) / DAY_IN_SECONDS)) - 1) *
+        (Number(totalRunCount) - 1)
+  );
+  const totalReward = Big(singleExecutionReward).mul(totalRunCount);
+  console.log(`totalReward=${totalReward} creationFee=${creationFee} evictionFee=${evictionFee}`);
+  return Big(totalReward).add(creationFee).add(evictionFee).toString();
 };
 
 export const queryWasmContractWithCatch = async (

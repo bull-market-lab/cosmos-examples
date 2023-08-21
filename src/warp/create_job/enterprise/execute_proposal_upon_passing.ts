@@ -87,6 +87,7 @@ const run = async () => {
         selector: "$.status",
       },
       reinitialize: false,
+      encode: false,
     },
   };
 

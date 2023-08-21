@@ -6,14 +6,13 @@ import {
   getMnemonicKey,
   getWallet,
   getWarpFirstFreeSubAccountAddress,
-  queryWasmContractWithCatch,
   toBase64,
 } from "../../../util";
 import {
   CHAIN_DENOM,
   CHAIN_PREFIX,
   MARS_RED_BANK_ADDRESS,
-  NTRN_USDC_PAIR_ADDRESS,
+  OSMOSIS_SWAPPER_BY_MARS,
   USDC_DENOM,
   WARP_CONTROLLER_ADDRESS,
   WARP_RESOLVER_ADDRESS,
@@ -27,13 +26,13 @@ const wallet = getWallet(lcd, mnemonicKey);
 // sender
 const myAddress = wallet.key.accAddress(CHAIN_PREFIX);
 
-const astroportNtrnUsdcPairAddress = NTRN_USDC_PAIR_ADDRESS!;
-
 const warpControllerAddress = WARP_CONTROLLER_ADDRESS!;
 
 const marsRedBankAddress = MARS_RED_BANK_ADDRESS!;
 
 const usdcDenom = USDC_DENOM!;
+
+const osmosisSwapperByMars = OSMOSIS_SWAPPER_BY_MARS!;
 
 const run = async () => {
   // when max_spread and minimum_receive are both specified, the swap will fail if receive amount is not in the range of [minimum_receive, return_amount * (1 +/- max_spread)]
@@ -64,19 +63,16 @@ const run = async () => {
 
   /// =========== vars ===========
 
-  const astroportSimulateNativeSwapMsg = {
-    simulation: {
-      offer_asset: {
-        info: {
-          native_token: {
-            denom: offeredTokenDenom,
-          },
-        },
+  const osmosisSimulateNativeSwapMsg = {
+    estimate_exact_in_swap: {
+      coin_in: {
+        denom: offeredTokenDenom,
         amount: swapAmount,
       },
+      denom_out: CHAIN_DENOM,
     },
   };
-  const jobVarNamePrice = "ntrn_usdc_price";
+  const jobVarNamePrice = "osmo_usdc_price";
   const jobVarPrice = {
     query: {
       kind: "amount",
@@ -85,12 +81,12 @@ const run = async () => {
         query: {
           wasm: {
             smart: {
-              msg: toBase64(astroportSimulateNativeSwapMsg),
-              contract_addr: astroportNtrnUsdcPairAddress,
+              msg: toBase64(osmosisSimulateNativeSwapMsg),
+              contract_addr: osmosisSwapperByMars,
             },
           },
         },
-        selector: "$.return_amount",
+        selector: "$.amount",
       },
       reinitialize: false,
       encode: false,
@@ -124,36 +120,22 @@ const run = async () => {
     },
   };
 
-  const astroportNativeSwapMsg = {
-    swap: {
-      offer_asset: {
-        info: {
-          native_token: {
-            denom: offeredTokenDenom,
-          },
-        },
+  const osmosisNativeSwapMsg = {
+    swap_exact_in: {
+      coin_in: {
+        denom: offeredTokenDenom,
         amount: `$warp.variable.${jobVarNameMarsBalance}`,
-        // amount: swapAmount,
       },
-      /*
-      Belief Price + Max Spread
-      If belief_price is provided in combination with max_spread, 
-      the pool will check the difference between the return amount (using belief_price) and the real pool price.
-      The belief_price +/- the max_spread is the range of possible acceptable prices for this swap.
-      */
-      // belief_price: beliefPrice,
-      // max_spread: '0.005',
-      max_spread: maxSpread,
-      // to: '...', // default to sender, need to set explicitly cause default is sub account
-      to: myAddress,
+      denom_out: CHAIN_DENOM,
+      slippage: maxSpread,
     },
   };
-  const jobVarNameAstroportSwapMsg = "astroport_swap_msg";
-  const jobVarAstroportSwapMsg = {
+  const jobVarNameOsmosisSwapMsg = "osmosis_swap_msg";
+  const jobVarOsmosisSwapMsg = {
     static: {
       kind: "string",
-      name: jobVarNameAstroportSwapMsg,
-      value: JSON.stringify(astroportNativeSwapMsg),
+      name: jobVarNameOsmosisSwapMsg,
+      value: JSON.stringify(osmosisNativeSwapMsg),
       encode: true,
     },
   };
@@ -195,8 +177,8 @@ const run = async () => {
   const nativeSwap = {
     wasm: {
       execute: {
-        contract_addr: astroportNtrnUsdcPairAddress,
-        msg: `$warp.variable.${jobVarNameAstroportSwapMsg}`,
+        contract_addr: osmosisSwapperByMars,
+        msg: `$warp.variable.${jobVarNameOsmosisSwapMsg}`,
         funds: [{ denom: offeredTokenDenom, amount: `$warp.variable.${jobVarNameMarsBalance}` }],
       },
     },
@@ -230,15 +212,15 @@ const run = async () => {
 
   const cosmosMsgCreateJob = new MsgExecuteContract(myAddress, warpControllerAddress, {
     create_job: {
-      name: "astroport_yield_bearing_limit_order_swap_usdc_to_ntrn_from_pool",
+      name: "osmosis_yield_bearing_limit_order_swap_usdc_to_osmos_from_pool",
       description: "woooooooo yield bearing limit order",
-      labels: ["astroport", "mars"],
+      labels: ["osmosis", "mars"],
       // set account explicitly if we want to use sub account, otherwise it will use default account
       account: subAccountAddress,
       recurring: false,
       requeue_on_evict: false,
       reward: DEFAULT_JOB_REWARD,
-      vars: JSON.stringify([jobVarPrice, jobVarMarsBalance, jobVarAstroportSwapMsg]),
+      vars: JSON.stringify([jobVarPrice, jobVarMarsBalance, jobVarOsmosisSwapMsg]),
       condition: JSON.stringify(condition),
       // TODO: claim mars rewards if available and send back to owner's EOA
       msgs: JSON.stringify([JSON.stringify(withdrawFromMars), JSON.stringify(nativeSwap)]),
@@ -269,8 +251,8 @@ const run = async () => {
   //     vars: JSON.stringify([
   //       jobVarPrice,
   //       jobVarMarsBalance,
-  //       jobVarAstroportSwapMsg,
-  //       // jobVarAstroportSwapFund,
+  //       jobVarOsmosisSwapMsg,
+  //       // jobVarOsmosisSwapFund,
   //     ]),
   //     condition: JSON.stringify(condition),
   //     msgs: JSON.stringify([JSON.stringify(withdrawFromMars), JSON.stringify(nativeSwap)]),
@@ -280,8 +262,8 @@ const run = async () => {
 
   // const hydratedVars = await queryWasmContractWithCatch(lcd, warpResolverAddress, {
   //   query_hydrate_vars: {
-  //     // vars: JSON.stringify([jobVarPrice, jobVarMarsBalance, jobVarAstroportSwapMsg, jobVarAstroportSwapFund]),
-  //     vars: JSON.stringify([jobVarPrice, jobVarMarsBalance, jobVarAstroportSwapMsg])
+  //     // vars: JSON.stringify([jobVarPrice, jobVarMarsBalance, jobVarOsmosisSwapMsg, jobVarOsmosisSwapFund]),
+  //     vars: JSON.stringify([jobVarPrice, jobVarMarsBalance, jobVarOsmosisSwapMsg])
   //   },
   // });
 
