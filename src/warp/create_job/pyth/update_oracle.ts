@@ -1,7 +1,6 @@
 // ===================== PLEASE READ THIS =====================
 /*
-yield bearing DCA is a little tricky as we need to know how much to withdraw each time, this could be solved by deploying an simple query contract that calculates it, pass DCA already run counter, total count
-withdraw_amount = mars_balance / (total_dca_count - dca_already_run_counter)
+
 */
 
 import Big from "big.js";
@@ -20,6 +19,7 @@ import {
   CHAIN_PREFIX,
   MARS_RED_BANK_ADDRESS,
   NTRN_USDC_PAIR_ADDRESS,
+  PYTH_ADDRESS,
   USDC_DENOM,
   WARP_CONTROLLER_ADDRESS,
   WARP_RESOLVER_ADDRESS,
@@ -33,24 +33,11 @@ const wallet = getWallet(lcd, mnemonicKey);
 // sender
 const myAddress = wallet.key.accAddress(CHAIN_PREFIX);
 
-const astroportNtrnUsdcPairAddress = NTRN_USDC_PAIR_ADDRESS!;
-
 const warpControllerAddress = WARP_CONTROLLER_ADDRESS!;
 
-const marsRedBankAddress = MARS_RED_BANK_ADDRESS!;
-
-const usdcDenom = USDC_DENOM!;
+const pythAddress = PYTH_ADDRESS!;
 
 const run = async () => {
-  // default spread is 0.01 which is 1%
-  // maybe i don't need to specify spread in swap msg, as condition already ensure i get the price i want
-  const maxSpread = "0.1";
-
-  // 0.05 USDC
-  const totalSwapAmount = (50_000).toString();
-
-  const offeredTokenDenom = usdcDenom;
-
   const dcaNumber = (5).toString();
 
   // 86400 is 1 day in seconds
@@ -59,9 +46,6 @@ const run = async () => {
   const dcaInterval = (30).toString();
   // initial value is current timestamp
   const dcaStartTime = String(Math.floor(Date.now() / 1000));
-
-  // round down to 3 decimal places to avoid running out of fund
-  const singleSwapAmount = Big(totalSwapAmount).div(dcaNumber).round(3, 0).toString();
 
   const warpResolverAddress = WARP_RESOLVER_ADDRESS!;
 
@@ -74,9 +58,13 @@ const run = async () => {
     dcaNumber
   );
 
+  // each pyth update needs 1 native denom fee, e.g. on Neutron it's 1 untrn
+  const pythSingleUpdateFee = "1";
+  const totalPythUpdateFee = Big(pythSingleUpdateFee).times(dcaNumber).toString();
+
   /// =========== vars ===========
 
-  const jobVarNameNextExecution = "dca_swap_usdc_to_ntrn_next_execution";
+  const jobVarNameNextExecution = "update_pyth_oracle_next_execution";
   const jobVarNextExecution = {
     static: {
       kind: "uint", // NOTE: it's better to use uint instead of timestamp to keep it consistent with condition
@@ -105,7 +93,7 @@ const run = async () => {
     },
   };
 
-  const jobVarNameAlreadyRunCounter = "dca_already_run_counter";
+  const jobVarNameAlreadyRunCounter = "update_pyth_oracle_already_run_counter";
   const jobVarAlreadyRunCounter = {
     static: {
       kind: "int",
@@ -134,62 +122,42 @@ const run = async () => {
     encode: false,
   };
 
-  const queryMarsBalanceMsg = {
-    user_collateral: {
-      user: subAccountAddress,
-      denom: offeredTokenDenom,
-    },
-  };
-  const jobVarNameMarsBalance = "usdc_balance_in_mars";
-  const jobVarMarsBalance = {
-    query: {
-      kind: "amount",
-      name: jobVarNameMarsBalance,
-      init_fn: {
-        query: {
-          wasm: {
-            smart: {
-              msg: toBase64(queryMarsBalanceMsg),
-              contract_addr: marsRedBankAddress,
-            },
-          },
-        },
-        selector: "$.amount",
-      },
-      reinitialize: false,
+  //   const updatePythOracleMsg = {
+  //     update_price_feeds: {
+  //       data: [
+  //         `$warp.variable.${jobVarNamePythData}`,
+  //       ],
+  //     },
+  //   };
+  const jobVarNamePythData = "astroport_swap_msg";
+  const jobVarPythData = {
+    external: {
+      kind: "string",
+      name: jobVarNamePythData,
       encode: false,
+      init_fn: {
+        url: "https://xc-mainnet.pyth.network/api/latest_vaas",
+        method: "get",
+      },
+      reinitialize: true,
+      //   value: JSON.stringify(updatePythOracleMsg),
+      // update_fn: {}
     },
   };
 
-  const astroportNativeSwapMsg = {
-    swap: {
-      offer_asset: {
-        info: {
-          native_token: {
-            denom: offeredTokenDenom,
-          },
-        },
-        amount: `$warp.variable.${jobVarNameMarsBalance}`,
-      },
-      /*
-      Belief Price + Max Spread
-      If belief_price is provided in combination with max_spread, 
-      the pool will check the difference between the return amount (using belief_price) and the real pool price.
-      The belief_price +/- the max_spread is the range of possible acceptable prices for this swap.
-      */
-      // belief_price: beliefPrice,
-      // max_spread: '0.005',
-      max_spread: maxSpread,
-      // to: '...', // default to sender, need to set explicitly cause default is sub account
-      to: myAddress,
+  const updatePythOracleMsg = {
+    update_price_feeds: {
+      // TODO: check if this is per price feed, if we want to get all price feeds, we may need json array var kind
+      // data: `$warp.variable.${jobVarNamePythDataArray}`,
+      data: [`$warp.variable.${jobVarNamePythData}`],
     },
   };
-  const jobVarNameAstroportSwapMsg = "astroport_swap_msg";
-  const jobVarAstroportSwapMsg = {
+  const jobVarNameUpdatePythOracleMsg = "astroport_swap_msg";
+  const jobVarUpdatePythOracleMsg = {
     static: {
       kind: "string",
-      name: jobVarNameAstroportSwapMsg,
-      value: JSON.stringify(astroportNativeSwapMsg),
+      name: jobVarNameUpdatePythOracleMsg,
+      value: JSON.stringify(updatePythOracleMsg),
       encode: true,
     },
   };
@@ -201,8 +169,6 @@ const run = async () => {
       {
         expr: {
           uint: {
-            // NOTE: we must use uint instead of timestamp here as timestamp can only compare current time with var
-            // there is no left side of expression
             left: {
               env: "time",
             },
@@ -245,28 +211,12 @@ const run = async () => {
 
   /// =========== job msgs ===========
 
-  const withdrawFromMarsMsg = {
-    withdraw: {
-      // unset will default to withdraw full amount
-      denom: offeredTokenDenom,
-    },
-  };
-  const withdrawFromMars = {
+  const updatePythOracle = {
     wasm: {
       execute: {
-        contract_addr: marsRedBankAddress,
-        msg: toBase64(withdrawFromMarsMsg),
-        funds: [],
-      },
-    },
-  };
-
-  const nativeSwap = {
-    wasm: {
-      execute: {
-        contract_addr: astroportNtrnUsdcPairAddress,
-        msg: `$warp.variable.${jobVarNameAstroportSwapMsg}`,
-        funds: [{ denom: offeredTokenDenom, amount: `$warp.variable.${jobVarNameMarsBalance}` }],
+        contract_addr: pythAddress,
+        msg: `$warp.variable.${jobVarNameUpdatePythOracleMsg}`,
+        funds: [{ denom: CHAIN_DENOM, amount: pythSingleUpdateFee }],
       },
     },
   };
@@ -274,34 +224,14 @@ const run = async () => {
   /// =========== cosmos msgs ===========
 
   const cosmosMsgEoaDepositToSubAccount = new MsgSend(myAddress, subAccountAddress, {
-    [offeredTokenDenom]: totalSwapAmount,
-    [CHAIN_DENOM]: warpProtocolFee,
-  });
-
-  const depositToMarsMsg = {
-    deposit: {},
-  };
-  const cosmosMsgSubAccountDepositToMars = new MsgExecuteContract(myAddress, subAccountAddress, {
-    generic: {
-      msgs: [
-        {
-          wasm: {
-            execute: {
-              contract_addr: marsRedBankAddress,
-              msg: toBase64(depositToMarsMsg),
-              funds: [{ denom: offeredTokenDenom, amount: totalSwapAmount }],
-            },
-          },
-        },
-      ],
-    },
+    [CHAIN_DENOM]: Big(warpProtocolFee).add(totalPythUpdateFee).toString(),
   });
 
   const cosmosMsgCreateJob = new MsgExecuteContract(myAddress, warpControllerAddress, {
     create_job: {
-      name: "astroport_yield_bearing_dca_order_swap_usdc_to_ntrn_from_pool",
-      description: "woooooooo yield bearing DCA order",
-      labels: ["astroport", "mars"],
+      name: "update_pyth_oracle",
+      description: "periodically update pyth oracle",
+      labels: ["pyth"],
       // set account explicitly if we want to use sub account, otherwise it will use default account
       account: subAccountAddress,
       recurring: true,
@@ -310,13 +240,12 @@ const run = async () => {
       vars: JSON.stringify([
         jobVarAlreadyRunCounter,
         jobVarNextExecution,
-        jobVarMarsBalance,
-        jobVarAstroportSwapMsg,
+        jobVarPythData,
+        jobVarUpdatePythOracleMsg,
       ]),
       condition: JSON.stringify(condition),
       terminate_condition: JSON.stringify(terminateCondition),
-      // TODO: claim mars rewards if available and send back to owner's EOA
-      msgs: JSON.stringify([withdrawFromMars, nativeSwap]),
+      msgs: JSON.stringify([updatePythOracle]),
     },
   });
 
@@ -332,7 +261,9 @@ const run = async () => {
 
   createSignBroadcastCatch(wallet, [
     cosmosMsgEoaDepositToSubAccount,
-    cosmosMsgSubAccountDepositToMars,
+    // haha we can even deposit to mars and withdraw little by little for each execution
+    // take the idea of yield bearing DCA
+    // cosmosMsgSubAccountDepositToMars,
     cosmosMsgCreateJob,
     cosmosMsgCreateNewSubAccount,
   ]);

@@ -37,3 +37,5 @@ export const MARS_RED_BANK_ADDRESS: string | undefined = env.MARS_RED_BANK_ADDRE
 export const OSMOSIS_SWAPPER_BY_MARS: string | undefined = env.OSMOSIS_SWAPPER_BY_MARS;
 
 export const USDC_DENOM: string | undefined = env.USDC_DENOM;
+
+export const PYTH_ADDRESS: string | undefined = env.PYTH_ADDRESS;

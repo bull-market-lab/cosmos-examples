@@ -64,7 +64,7 @@ const run = async () => {
       requeue_on_evict: false,
       reward: DEFAULT_JOB_REWARD,
       condition: JSON.stringify(condition),
-      msgs: JSON.stringify([JSON.stringify(bankSendMsg)]),
+      msgs: JSON.stringify([bankSendMsg]),
       vars: JSON.stringify([]),
       // set account if we want to use sub account
       account: subAccountAddress,

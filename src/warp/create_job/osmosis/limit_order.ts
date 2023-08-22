@@ -139,7 +139,7 @@ const run = async () => {
       reward: DEFAULT_JOB_REWARD,
       vars: JSON.stringify([jobVar]),
       condition: JSON.stringify(condition),
-      msgs: JSON.stringify([JSON.stringify(nativeSwap)]),
+      msgs: JSON.stringify([nativeSwap]),
       // needs to specify assets_to_withdraw as osmosis swapper contract by mars doesn't support transfer swapped token to another address
       assets_to_withdraw: [{ native: CHAIN_DENOM }],
     },
@@ -167,7 +167,7 @@ const run = async () => {
   //   query_validate_job_creation: {
   //     vars: JSON.stringify([jobVar]),
   //     condition: JSON.stringify(condition),
-  //     msgs: JSON.stringify([JSON.stringify(nativeSwap)]),
+  //     msgs: JSON.stringify([nativeSwap]),
   //   },
   // }).then((res) => console.log(res));
 };

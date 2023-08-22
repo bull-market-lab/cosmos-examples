@@ -179,7 +179,7 @@ const run = async () => {
         reward: DEFAULT_JOB_REWARD,
         condition: JSON.stringify(condition),
         terminate_condition: JSON.stringify(terminateCondition),
-        msgs: JSON.stringify([JSON.stringify(bankSend)]),
+        msgs: JSON.stringify([bankSend]),
         vars: JSON.stringify([jobVarNextExecution, jobVarAlreadyRunCounter]),
         is_sub_account: true,
       },

@@ -215,7 +215,7 @@ const run = async () => {
       vars: JSON.stringify([jobVarAlreadyRunCounter, jobVarNextExecution]),
       condition: JSON.stringify(condition),
       terminate_condition: JSON.stringify(terminateCondition),
-      msgs: JSON.stringify([JSON.stringify(nativeSwap)]),
+      msgs: JSON.stringify([nativeSwap]),
       // needs to specify assets_to_withdraw as osmosis swapper contract by mars doesn't support transfer swapped token to another address
       // NOTE: this must not be the asset we are swapping, otherwise it will be withdrawn and follow up jobs will fail
       assets_to_withdraw: [{ native: CHAIN_DENOM }],
@@ -245,7 +245,7 @@ const run = async () => {
   //     vars: JSON.stringify([jobVarAlreadyRunCounter, jobVarNextExecution]),
   //     condition: JSON.stringify(condition),
   //     terminate_condition: JSON.stringify(terminateCondition),
-  //     msgs: JSON.stringify([JSON.stringify(nativeSwap)]),
+  //     msgs: JSON.stringify([nativeSwap]),
   //   },
   // }).then((res) => console.log(res));
 };

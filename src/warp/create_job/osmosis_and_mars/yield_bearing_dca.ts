@@ -303,7 +303,7 @@ const run = async () => {
       condition: JSON.stringify(condition),
       terminate_condition: JSON.stringify(terminateCondition),
       // TODO: claim mars rewards if available and send back to owner's EOA
-      msgs: JSON.stringify([JSON.stringify(withdrawFromMars), JSON.stringify(nativeSwap)]),
+      msgs: JSON.stringify([withdrawFromMars, nativeSwap]),
     },
   });
 
@@ -335,8 +335,8 @@ const run = async () => {
   //       // jobVarAstroportSwapFund,
   //     ]),
   //     condition: JSON.stringify(condition),
-  //     msgs: JSON.stringify([JSON.stringify(withdrawFromMars), JSON.stringify(nativeSwap)]),
-  //     // msgs: JSON.stringify([JSON.stringify(nativeSwap)]),
+  //     msgs: JSON.stringify([withdrawFromMars, nativeSwap]),
+  //     // msgs: JSON.stringify([nativeSwap]),
   //   },
   // }).then((res) => console.log(res));
 
@@ -360,7 +360,7 @@ const run = async () => {
 
   // const hydratedMsgs = await queryWasmContractWithCatch(lcd, warpResolverAddress, {
   //   query_hydrate_msgs: {
-  //     msgs: JSON.stringify([JSON.stringify(withdrawFromMars), JSON.stringify(nativeSwap)]),
+  //     msgs: JSON.stringify([withdrawFromMars, nativeSwap]),
   //     vars: hydratedVars,
   //   },
   // });

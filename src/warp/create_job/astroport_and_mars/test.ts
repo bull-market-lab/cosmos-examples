@@ -231,10 +231,10 @@ const run = async () => {
       reward: jobReward,
       condition: JSON.stringify(condition),
       // TODO: also claim mars rewards if available
-      msgs: JSON.stringify([JSON.stringify(withdrawFromMars), JSON.stringify(nativeSwap)]),
-      // msgs: JSON.stringify([JSON.stringify(nativeSwap)]),
+      msgs: JSON.stringify([withdrawFromMars, nativeSwap]),
+      // msgs: JSON.stringify([nativeSwap]),
       vars: JSON.stringify([jobVarMarsBalance, jobVarAstroportNativeSwapMsg, jobVarPrice]),
-      initial_msgs: JSON.stringify([JSON.stringify(depositToMars)]),
+      initial_msgs: JSON.stringify([depositToMars]),
       should_update_var_account_address: true,
     },
   };
@@ -244,7 +244,7 @@ const run = async () => {
       condition: JSON.stringify(condition),
       // terminate_condition: data.terminate_condition.clone(),
       vars: JSON.stringify([jobVarMarsBalance, jobVarAstroportNativeSwapMsg, jobVarPrice]),
-      msgs: JSON.stringify([JSON.stringify(withdrawFromMars), JSON.stringify(nativeSwap)]),
+      msgs: JSON.stringify([withdrawFromMars, nativeSwap]),
     },
   }).then((result) => {
     console.log(result);

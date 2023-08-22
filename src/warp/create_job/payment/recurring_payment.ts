@@ -187,7 +187,7 @@ const run = async () => {
       vars: JSON.stringify([jobVarNextExecution, jobVarAlreadyRunCounter]),
       condition: JSON.stringify(condition),
       terminate_condition: JSON.stringify(terminateCondition),
-      msgs: JSON.stringify([JSON.stringify(bankSend)]),
+      msgs: JSON.stringify([bankSend]),
     },
   });
 
